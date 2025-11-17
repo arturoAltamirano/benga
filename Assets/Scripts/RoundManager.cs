@@ -18,8 +18,8 @@ public class RoundManager : MonoBehaviour
     [HideInInspector] public int defenderScore = 0;
 
     [Header("Script References")]
-    [SerializeField] private BuildingManager buildingManager;
-    [SerializeField] private WreckingBallSpawner wreckingBallSpawner;
+    [SerializeField] private DefendManager DefendManager;
+    [SerializeField] private AttackManager AttackManager;
 
     [Header("UI Elements")]
     [SerializeField] private TextMeshProUGUI scoreboardText;
@@ -31,26 +31,23 @@ public class RoundManager : MonoBehaviour
     void Start()
     {
         //we want defender to start the game, so use our switch phase to designate accordingly
-        SwitchPhase(Phase.Attacker);
+        SwitchPhase(Phase.Defender);
     }
 
-    public void SwitchPhase(Phase currentPhase)
+    public void SwitchPhase(Phase desiredPhase)
     /**
     We need to switch phases and disable/enable the correct player abilities.
     We set the navigation aid UI, the respective timer, and the access permissions.
     This will be called by many scripts when a change is needed.
     **/
     {
-        //if we are switching phases,we are going to check this regardless
-        if (attackerWin != true)
-        {
-            defenderScore++;
-            attackerWin = false;
-        }
+        currentPhase = desiredPhase;
 
         //switch from attacker to defender
-        if (currentPhase == Phase.Attacker)
+        if (currentPhase == Phase.Defender)
         {
+            Debug.Log("Switch to defense.");
+
             //Debug.Log($"Start Phase: {currentPhase} to {desiredPhase}");
             navigationAid.text = $"1 - Vertical Pillar \n2 - Horizontal Pillar \n3 - Defense Object";
 
@@ -58,30 +55,30 @@ public class RoundManager : MonoBehaviour
             scoreboardTimer = defenderPhaseDuration;
 
             //set the enabled access params to be checked during update
-            wreckingBallSpawner.isEnabledAccess = false;
-            buildingManager.isEnabledAccess = true;
+            AttackManager.isEnabledAccess = false;
+            DefendManager.isEnabledAccess = true;
 
             //wipe out all of the wrecking balls at the end of the attacker cycle
-            foreach (var ball in wreckingBallSpawner.spawnedBalls)
+            foreach (var ball in AttackManager.spawnedBalls)
             {
                 Destroy(ball);
             }
 
             //and placed objects - we are 'wiping the slate clean'
-            foreach (var obj in buildingManager.placedObjects)
+            foreach (var obj in DefendManager.placedObjects)
             {
                 Destroy(obj);
             }
 
             //if we are going from attacker to defender - the defense object has been destroyed
-            buildingManager.defenseObjectPlaced = false;
-
-            currentPhase = Phase.Defender;
+            DefendManager.defenseObjectPlaced = false;
         }
 
         //vice versa...defender to attacker
-        else if (currentPhase == Phase.Defender)
+        else if (currentPhase == Phase.Attacker)
         {
+            Debug.Log("Switch to offense.");
+
             //Debug.Log($"Start Phase: {currentPhase} to {desiredPhase}");
             navigationAid.text = $"1 - Fastball \n2 - Scattershot \n3 - Curveball";
 
@@ -89,13 +86,11 @@ public class RoundManager : MonoBehaviour
             scoreboardTimer = attackerPhaseDuration;
 
             //set the enabled access params to be checked during update
-            wreckingBallSpawner.isEnabledAccess = true;
-            buildingManager.isEnabledAccess = false;
+            AttackManager.isEnabledAccess = true;
+            DefendManager.isEnabledAccess = false;
 
             //we want to reset the ammo count in wreckingBall so we can shoot again
-            wreckingBallSpawner.ResetAmmo();
-
-            currentPhase = Phase.Attacker;
+            AttackManager.ResetAmmo();
         }
 
         //anytime we switch phase - update the scoreboard by default
@@ -109,7 +104,7 @@ public class RoundManager : MonoBehaviour
         //if we have exhausted our timer for whatever phase
         if (scoreboardTimer <= 0)
         {
-            SwitchPhase(currentPhase);
+            SwitchPhase(currentPhase == Phase.Defender ? Phase.Attacker : Phase.Defender);
         }
 
         //update our timer 

@@ -14,10 +14,12 @@ public class killZone : MonoBehaviour
         if (other.CompareTag("DefenseObject"))
         {
             //Debug.Log("killzone script: Defense object hit kill zone");
+
+            RoundManager.attackerScore += 1;
             RoundManager.attackerWin = true;
 
             //hypothetically...a defense object could hit during defender building
-            RoundManager.SwitchPhase(RoundManager.currentPhase);
+            RoundManager.SwitchPhase(RoundManager.Phase.Defender);
         }
     }
 }

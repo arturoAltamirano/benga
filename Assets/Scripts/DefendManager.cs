@@ -1,10 +1,9 @@
-using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using System.Linq;
-using Unity.VisualScripting;
+using System.Collections.Generic;
 
-public class BuildingManager : MonoBehaviour
+public class DefendManager : MonoBehaviour
 {
     [System.Serializable]
 
@@ -18,13 +17,12 @@ public class BuildingManager : MonoBehaviour
     }
 
     [Header("Build Objects")]
-    [SerializeField] private List<GameObject> horizontalPillarObjects = new List<GameObject>();
-
-    [SerializeField] private List<GameObject>verticalPillarObjects = new List<GameObject>();
-    [SerializeField] private List<GameObject> defenseObjects = new List<GameObject>();
+    [SerializeField] private GameObject horizontalPillar;
+    [SerializeField] private GameObject verticalPillar;
+    [SerializeField] private GameObject defenseObject;
 
     [Header("Build Settings")]
-    [SerializeField] private SelectedBuildType currentBuildType = SelectedBuildType.VerticalPillar;
+    [HideInInspector] private SelectedBuildType currentBuildType = SelectedBuildType.VerticalPillar;
     [SerializeField] private LayerMask connectorLayer;
 
     [Header("Ghost Settings")]
@@ -32,18 +30,18 @@ public class BuildingManager : MonoBehaviour
     [SerializeField] private Material ghostMaterialInvalid;
 
     [Header("Internal State")]
-    private int currentBuildingIndex = 0;
-    private GameObject ghostBuildGameObject;
-    private bool isGhostInValidPosition = false;
-    public bool defenseObjectPlaced = false;
-    private bool snappedToConnector = false;
-    private Transform ModelParent = null;
+    [HideInInspector] private GameObject ghostBuildGameObject;
+    [HideInInspector] private bool isGhostInValidPosition = false;
+    [HideInInspector] public bool defenseObjectPlaced = false;
+    [HideInInspector] private bool snappedToConnector = false;
+    [HideInInspector] private Transform ModelParent = null;
 
     [SerializeField] private RoundManager RoundManager;
 
     [Header("Build Limits & UI")]
     [SerializeField] private TextMeshProUGUI selectedObjectText;
-    public List<GameObject> placedObjects = new List<GameObject>();
+    [HideInInspector] public List<GameObject> placedObjects = new List<GameObject>();
+    [SerializeField] private TextMeshProUGUI navigationAid;
 
     private bool isEnabled = true;
 
@@ -51,6 +49,35 @@ public class BuildingManager : MonoBehaviour
     {
         get => isEnabled;
         set => isEnabled = value;
+    }
+
+    private void Update()
+    {
+        if (!isEnabled) return;
+
+        else if (Input.GetKeyDown(KeyCode.Space))
+        {
+            if (!defenseObjectPlaced) navigationAid.text = $"Place defenseObject to switch round!";
+
+            else
+            {
+                //Debug.Log("Switching to attacker from defender.");
+                RoundManager.SwitchPhase(RoundManager.Phase.Attacker);
+            }
+        }
+
+        else
+        {
+            HandleBuildSelection();
+                        
+            if (ghostBuildGameObject == null)
+                isGhostInValidPosition = false;
+
+            if (Input.GetMouseButtonDown(0) && isGhostInValidPosition)
+                placeBuild();
+
+            ghostBuild();
+        }   
     }
 
     private void DestroyGhost()
@@ -405,13 +432,13 @@ public class BuildingManager : MonoBehaviour
         {
 
             case SelectedBuildType.VerticalPillar:
-                return verticalPillarObjects[currentBuildingIndex];
+                return verticalPillar;
             
             case SelectedBuildType.HorizontalPillar:
-                return horizontalPillarObjects[currentBuildingIndex];
+                return horizontalPillar;
 
             case SelectedBuildType.DefenseObject:
-                return defenseObjects[currentBuildingIndex];
+                return defenseObject;
 
             default:
                 return null;
@@ -517,35 +544,6 @@ public class BuildingManager : MonoBehaviour
 
             Destroy(ghostBuildGameObject);
             ghostBuildGameObject = null;
-        }
-    }
-
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            if (defenseObjectPlaced)
-            {
-                RoundManager.SwitchPhase(RoundManager.Phase.Defender);
-            }
-        }
-
-        if (isEnabledAccess == true)
-        {
-            HandleBuildSelection();
-                        
-            if (ghostBuildGameObject == null)
-                isGhostInValidPosition = false;
-
-            if (Input.GetMouseButtonDown(0) && isGhostInValidPosition)
-                placeBuild();
-
-            ghostBuild();
-        }
-
-        else
-        {
-            DestroyGhost();
         }
     }
 }

@@ -2,26 +2,27 @@ using TMPro;
 using UnityEngine;
 using System.Collections.Generic;
 
-public class WreckingBallSpawner : MonoBehaviour
+public class AttackManager : MonoBehaviour
 {
-    [SerializeField] private Camera MainCamera;
-
-    public event System.Action OnCountChanged;
-
-    [SerializeField] private SelectedBulletType currentBulletType = SelectedBulletType.fastball;
-
     [Header("Bullet Objects")]
-    [SerializeField] private List<GameObject> fastballObjects = new List<GameObject>();
-    [SerializeField] private List<GameObject>scattershotObjects = new List<GameObject>();
-    [SerializeField] private List<GameObject> slugObjects = new List<GameObject>();
+    [SerializeField] private GameObject FastBall;
+    [SerializeField] private GameObject Pellet;
+    [SerializeField] private GameObject Slug;
+    [SerializeField] private SelectedBulletType currentBulletType = SelectedBulletType.fastball;
+    [HideInInspector] public Queue<GameObject> spawnedBalls = new Queue<GameObject>();
 
-    [SerializeField] TextMeshProUGUI counterText;
+    [Header("Bullet Attributes and Misc. Settings")]
+    [SerializeField] public int MaxBalls = 10;
+    [HideInInspector] private float launchForce = 10000f; 
+    [HideInInspector] private int currentAmmo = 10;
+    [HideInInspector] float ammoExhaustedTimer = 10f;
 
+    [Header("UI Elements and Scripts")]
+    [SerializeField] private RoundManager RoundManager;  
+    [SerializeField] private TextMeshProUGUI counterText;
     [SerializeField] private TextMeshProUGUI selectedObjectText;
-
-    [SerializeField] private RoundManager RoundManager;            
-
-    public Queue<GameObject> spawnedBalls = new Queue<GameObject>();
+    [SerializeField] private Camera MainCamera;
+    [HideInInspector] string currentName = "Fastball";
 
     private bool isEnabled = true;
     public bool isEnabledAccess
@@ -29,205 +30,6 @@ public class WreckingBallSpawner : MonoBehaviour
         get => isEnabled;
         set => isEnabled = value;
     }
-
-    [SerializeField] public int MaxBalls = 10;
-    public int currentAmmo = 10;
-    private float launchForce = 10000f;  
-
-    private int currentProjectileIndex = 0; 
-
-    float ammoExhaustedTimer = 10f;
-
-    void Start()
-    {
-        //on start - set our currentAmmo counter to the max
-        currentAmmo = MaxBalls;
-    }
-
-    private void UpdateAmmoCounterUI()
-    /**
-    On screen UI for ammunition - same as block counterpart
-    **/
-    {
-        counterText.text = $"Ammo: {currentAmmo} / {MaxBalls}";
-    }
-
-    private GameObject SpawnBullet(GameObject prefab)
-    {
-        Vector3 spawnPos = MainCamera.transform.position + MainCamera.transform.forward * 2f;
-        GameObject bullet = Instantiate(prefab, spawnPos, Quaternion.identity);
-
-        spawnedBalls.Enqueue(bullet);
-
-        UpdateAmmoCounterUI();
-        OnCountChanged?.Invoke();
-
-        return bullet;
-    }
-
-
-    private void LaunchFastball()
-    {
-        launchForce = 2000f;
-        GameObject newBall = SpawnBullet(fastballObjects[currentProjectileIndex]);
-
-        Rigidbody rb = newBall.GetComponent<Rigidbody>();
-        if (rb != null) rb.AddForce(MainCamera.transform.forward * launchForce);
-
-    }
-
-    private void LaunchSlug()
-    {
-        launchForce = 10000f;
-
-        GameObject slug = SpawnBullet(slugObjects[currentProjectileIndex]);
-        Rigidbody rb = slug.GetComponent<Rigidbody>();
-
-        rb.AddForce(MainCamera.transform.forward * launchForce);
-    }
-
-    private void LaunchScattershot()
-    {
-        launchForce = 1000f;
-
-        for (int i = 0; i < 5; i++)
-        {
-            GameObject pellet = SpawnBullet(scattershotObjects[currentProjectileIndex]);
-
-            Rigidbody rb = pellet.GetComponent<Rigidbody>();
-            Vector3 spread = MainCamera.transform.forward +
-                         Random.insideUnitSphere * 0.2f;
-
-            rb.AddForce(spread.normalized * launchForce);
-        }
-    }
-
-    public void LaunchBall()
-    {
-        if (currentAmmo <= 0) return;
-
-        switch (currentBulletType)
-        {
-            case SelectedBulletType.fastball:
-                currentAmmo--;
-                LaunchFastball();
-                break;
-
-            case SelectedBulletType.scattershot:
-                currentAmmo--;
-                LaunchScattershot();
-                break;
-
-            case SelectedBulletType.slug:
-                if (currentAmmo >= 5)
-                {
-                    currentAmmo -= 5;
-                    LaunchSlug();
-                }
-
-                else
-                {
-                    selectedObjectText.text = $"Insufficient ammo for slug!";
-                }
-                
-                break;
-        }
-    }
-
-    public void ResetAmmo()
-    {
-        currentAmmo = MaxBalls;
-        UpdateAmmoCounterUI();
-    }
-
-    private void UpdateSelectedBulletUI()
-    {
-        if (selectedObjectText == null)
-            return;
-
-        string currentName = "None";
-        GameObject currentPrefab = getCurrentBullet();
-
-        if (currentPrefab != null)
-        currentName = currentPrefab.name;
-
-        selectedObjectText.text = $"Shooting: {currentBulletType} ({currentName})";
-    }
-
-    private GameObject getCurrentBullet()
-    {
-        switch (currentBulletType)
-        {
-
-            case SelectedBulletType.fastball:
-                return fastballObjects[currentProjectileIndex];
-
-            case SelectedBulletType.scattershot:
-                return scattershotObjects[currentProjectileIndex];
-            
-            case SelectedBulletType.slug:
-                return slugObjects[currentProjectileIndex];
-
-            default:
-                return null;
-        }
-    }
-
-    private void HandleBulletSelection()
-    {
-        bool selectionChanged = false;
-
-        if (Input.GetKeyDown(KeyCode.Alpha1))
-        {
-            currentBulletType = SelectedBulletType.fastball;
-            selectionChanged = true;
-        }
-
-        if (Input.GetKeyDown(KeyCode.Alpha2))
-        {
-            currentBulletType = SelectedBulletType.scattershot;
-            selectionChanged = true;
-        }
-
-        if (Input.GetKeyDown(KeyCode.Alpha3))
-        {
-            currentBulletType = SelectedBulletType.slug;
-            selectionChanged = true;
-        }
-
-        if (selectionChanged)
-        {
-            UpdateSelectedBulletUI();
-        }
-    }
-
-
-    void Update()
-    {
-        if (!isEnabled) return;
-
-        else
-        {
-            if (Input.GetMouseButtonDown(0))
-            {
-                LaunchBall();
-            }
-
-            HandleBulletSelection();
-        }
-
-        if(currentAmmo - MaxBalls == 0)
-        {
-            ammoExhaustedTimer -= Time.deltaTime;
-
-            if (ammoExhaustedTimer == 0)
-            {
-                RoundManager.SwitchPhase(RoundManager.Phase.Attacker);
-
-            }
-        }
-    }
-
     public enum SelectedBulletType
     {
         fastball,
@@ -235,5 +37,183 @@ public class WreckingBallSpawner : MonoBehaviour
         scattershot,
 
         slug,
-    }   
+    } 
+
+    void Start()
+    {
+        //on start - set ammo to the max
+        ResetAmmo();
+    }
+
+    void Update()
+    {
+        //if we're not allowed to be here - kick out 
+        if (!isEnabled) return;
+
+        //otherwise - if we're out of bullets we need to decrement out cooldown
+        else if(currentAmmo == 0)
+        {
+            //i do this to give time for round to 'settle' after all round shot 
+            ammoExhaustedTimer -= Time.deltaTime;
+
+            //ensure our defense object isn't mid fall/some other weird situation
+            //we need to switch round now 
+            if (ammoExhaustedTimer == 0)
+            {
+                Debug.Log("Switching to attacker from defender.");
+                RoundManager.SwitchPhase(RoundManager.Phase.Defender);
+            }
+        }
+
+        //if we pass above checks, we are valid in this position
+        else
+        {
+            //if user is clicking - shoot the ball we have selected
+            if (Input.GetMouseButtonDown(0))
+            {
+                LaunchBall();
+            }
+
+            //if user selects a different ball - update UI
+            HandleBulletSelection();
+        }
+    }
+
+    private void HandleBulletSelection()
+    /*
+    Called from update everyframe - if the user clicks any of the 3 designated keys 
+    change to the proper bullet
+    */
+    {
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            currentBulletType = SelectedBulletType.fastball;
+            currentName = "Fastball";
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            currentBulletType = SelectedBulletType.scattershot;
+            currentName = "Scattershot";
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha3))
+        {
+            currentBulletType = SelectedBulletType.slug;
+            currentName = "Slug";
+        }
+
+        selectedObjectText.text = $"Shooting: {currentName}";
+    } 
+
+    public void ResetAmmo()
+    /*
+    Set Ammo count back to the default max - RoundManager needs to use this om phase switch
+    */
+    {
+        currentAmmo = MaxBalls;
+        counterText.text = $"Ammo: {currentAmmo} / {MaxBalls}";
+    }
+
+    public void LaunchBall()
+    /*
+    Called from update when user clicks to shoot - will call 3 subfunctions depending on 
+    the type of selected projectile (FB, Scatter or Slug) and will decrement the ammo count
+    Update shoot --> launch ball --> launch whatever type --> (spawns projectile and rb force operation)
+    */
+    {
+        if (currentAmmo <= 0) return;
+
+        //depending on type of bullet - call a different launch function
+        switch (currentBulletType)
+        {
+            case SelectedBulletType.fastball:
+            currentAmmo--;
+            LaunchFastball();
+            break;
+
+            case SelectedBulletType.scattershot:
+            currentAmmo--;
+            LaunchScattershot();
+            break;
+
+            //slug uses 5 bullet resources so we need to check if valid
+            case SelectedBulletType.slug:
+            if (currentAmmo >= 5)
+            {
+                currentAmmo -= 5;
+                LaunchSlug();
+                break;
+            }
+
+            else
+            {
+                selectedObjectText.text = $"Insufficient ammo for slug!";
+                break;
+            }
+        }
+    }
+
+    private GameObject SpawnBullet(GameObject prefab)
+    /*
+    We need to instantiate the bullet object at the camera position, then
+    enqueue it to our spawnedBalls, and finally update our UI element.
+    */
+    {
+        //define the spawn position, slightly in front of the camera
+        Vector3 spawnPos = MainCamera.transform.position + MainCamera.transform.forward * 2f;
+        
+        //instantiate the bullet, use quaternion.identity for 
+        GameObject bullet = Instantiate(prefab, spawnPos, Quaternion.identity);
+
+        //save this so we can track our elements for clean up later
+        spawnedBalls.Enqueue(bullet);
+
+        //update the UI
+        counterText.text = $"Ammo: {currentAmmo} / {MaxBalls}";
+
+        //instantiate the bullet, use quaternion.identity for 
+        return bullet;
+    }
+
+    private void LaunchFastball()
+    {
+        launchForce = 2000f;
+
+        GameObject fastBall = SpawnBullet(FastBall);
+        Rigidbody rb = fastBall.GetComponent<Rigidbody>();
+
+        rb.AddForce(MainCamera.transform.forward * launchForce);
+    }
+
+    private void LaunchScattershot()
+    {
+        //these are small and with low mass - less launch force
+        launchForce = 1000f;
+
+        //we want 5 pellets
+        for (int i = 0; i < 5; i++)
+        {
+            GameObject pellet = SpawnBullet(Pellet);
+            Rigidbody rb = pellet.GetComponent<Rigidbody>();
+
+            //use random unit sphere to simulate random scatter
+            Vector3 spread = MainCamera.transform.forward +
+                         Random.insideUnitSphere * 0.2f;
+
+            //spread is just the camera + the random unit sphere
+            rb.AddForce(spread.normalized * launchForce);
+        }
+    }
+
+    private void LaunchSlug()
+    {
+        //more mass so need more launch force
+        launchForce = 10000f;
+
+        GameObject slug = SpawnBullet(Slug);
+        Rigidbody rb = slug.GetComponent<Rigidbody>();
+
+        rb.AddForce(MainCamera.transform.forward * launchForce);
+    }
 }
