@@ -3,6 +3,7 @@ using TMPro;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEditor.Animations;
+using Unity.VisualScripting;
 
 public class DefendManager : MonoBehaviour
 {
@@ -216,36 +217,44 @@ public class DefendManager : MonoBehaviour
 
     private void moveGhostPrefabToRaycast()
     {   
-        Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
-        RaycastHit hit;
-        
-        Debug.DrawRay(ray.origin, ray.direction * 200f, Color.red);
+        float offset = 0.0f;
 
-        if (!Physics.Raycast(ray, out hit))
+        //hit object and raycast from center of viewport 
+        Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
+        
+        //Debug.DrawRay(ray.origin, ray.direction * 200f, Color.red);
+
+        //if our ray does not hit something, we are in an invalid position
+        if (Physics.Raycast(ray, out RaycastHit hit) == false)
         {
             isGhostInValidPosition = false;
-            ghostifyModel(ModelParent, ghostMaterialInvalid);
+            //ghostifyModel(ModelParent, ghostMaterialInvalid);
             return;
-        }
-
-        ghostBuildGameObject.transform.up = hit.normal;
-
-        Bounds bounds = GetObjectBounds(ghostBuildGameObject);
-        float offset;
-
-        if (currentBuildType == SelectedBuildType.HorizontalPillar)
-        {
-            offset = Mathf.Max(bounds.extents.x, bounds.extents.z);
         }
 
         else
         {
+            TrySnapGhostToConnector(hit);
+        }
+
+        //if I don't include this, the object is morphed into the ground
+        //i am almost certain this is because the ray is in the ground
+        //so when we set something, it is centered in the ground 
+        Bounds bounds = GetObjectBounds(ghostBuildGameObject);
+
+        //if its vertical it's going in the ground, offset by y and move it up
+        if (currentBuildType == SelectedBuildType.VerticalPillar)
+        {
             offset = bounds.extents.y;
         }
 
-        ghostBuildGameObject.transform.position = hit.point + hit.normal * offset;
+        //if it is a horizontal object, we offset by x and z axis
+        else if (currentBuildType == SelectedBuildType.HorizontalPillar)
+        {
+            offset = Mathf.Max(bounds.extents.x, bounds.extents.z);
+        }
 
-        TrySnapGhostToConnector(hit);
+        ghostBuildGameObject.transform.position = hit.point + hit.normal * offset;
 
         if (!isGhostInValidPosition)
         {
