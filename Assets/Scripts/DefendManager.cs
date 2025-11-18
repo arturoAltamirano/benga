@@ -2,6 +2,7 @@ using UnityEngine;
 using TMPro;
 using System.Linq;
 using System.Collections.Generic;
+using UnityEditor.Animations;
 
 public class DefendManager : MonoBehaviour
 {
@@ -76,88 +77,61 @@ public class DefendManager : MonoBehaviour
         {
             //evaluate if user is changing the object being placed
             HandleBuildSelection();
-                        
-            if (ghostBuildGameObject == null)
-                isGhostInValidPosition = false;
 
-            if (Input.GetMouseButtonDown(0) && isGhostInValidPosition)
-                placeBuild();
-
-            snappedToConnector = false;
-
-            //prevent a second from being placed - ??
-            if (currentBuildType == SelectedBuildType.DefenseObject && defenseObjectPlaced)
+            //both set in HandleBuild - if valid we're safe to proceed
+            if (ghostBuildGameObject != null && ModelParent != null)
             {
-                DestroyGhost();
-                isGhostInValidPosition = false;
-                return;
+                //continously update the position of the ghost to where user is raycasting
+                moveGhostPrefabToRaycast();
+
+                //if user is clicking to place the object, and it is in valid position
+                if (Input.GetMouseButtonDown(0) && isGhostInValidPosition)
+                {
+                    placeBuild();
+
+                    //we still need to create a new ghost, after destroying the previous following placement
+                    CreateGhost(currentBuild);
+                }
             }
-
-            createGhostPrefab(currentBuild);
-
-            moveGhostPrefabToRaycast();
-        }   
-    }
-
-    private void HandleBuildSelection()
-    /*
-    Called from update every frame - if the user clicks any of the 3 designated keys change to the proper build object
-    */
-    {
-        if (Input.GetKeyDown(KeyCode.Alpha1))
-        {
-            currentBuildType = SelectedBuildType.VerticalPillar;
-            currentBuild = verticalPillar;
-
-            //wipe the ghost object (the old object's ghost)
-            DestroyGhost();
-            selectedObjectText.text = $"Placing: {currentBuildType}";
-        }
-
-        else if (Input.GetKeyDown(KeyCode.Alpha2))
-        {
-            currentBuildType = SelectedBuildType.HorizontalPillar;
-            currentBuild = horizontalPillar;
-
-            DestroyGhost();
-            selectedObjectText.text = $"Placing: {currentBuildType}";        
-        }
-
-        else if (Input.GetKeyDown(KeyCode.Alpha3))
-        {
-            currentBuildType = SelectedBuildType.DefenseObject;
-            currentBuild = defenseObject;
-
-            DestroyGhost();
-            selectedObjectText.text = $"Placing: {currentBuildType}";
         }
     }
 
     private void DestroyGhost()
+    //small helper method to destory the ghostModel of our building block, and set it to null for reinstantiation
     {
         if (ghostBuildGameObject != null)
         {
             Destroy(ghostBuildGameObject);
+
+            //set this to null for safety check in create
             ghostBuildGameObject = null;
         }
     }
 
-    private void createGhostPrefab(GameObject currentBuild)
+    private void CreateGhost(GameObject currentBuild)
+    //small helper method to instantiate the ghostModel of our building block
     {
-        if (ghostBuildGameObject == null)
+        if (ghostBuildGameObject ==  null)
         {
+            //if ghost is null - we need to instantiate it to the current selected model
             ghostBuildGameObject = Instantiate(currentBuild);
-
             ModelParent = ghostBuildGameObject.transform.GetChild(0);
-
-            //ghostifyModel(ModelParent, ghostMaterialValid);
-
-            ghostifyModel(ghostBuildGameObject.transform);
+            ghostifyModel(ghostBuildGameObject.transform);  
         }
     }
 
     private void ghostifyModel(Transform modelParent, Material ghostMaterial = null)
+    /*
+    note for later: it would be much better to make a prefab and instantiate that - as opposed to doing these ops on current pillar prefabs...
+    */
     {
+        foreach (Rigidbody rb in modelParent.GetComponentsInChildren<Rigidbody>())
+        {
+            rb.isKinematic = true;
+            rb.useGravity = false;
+            rb.detectCollisions = false;
+        }
+
         if (ghostMaterial != null)
         {
             foreach (MeshRenderer meshRenderer in modelParent.GetComponentsInChildren<MeshRenderer>())
@@ -173,37 +147,80 @@ public class DefendManager : MonoBehaviour
                 modelColliders.enabled = false;
             }
         }
+    }
 
-        foreach (Rigidbody rb in modelParent.GetComponentsInChildren<Rigidbody>())
+    private void HandleBuildSelection()
+    /*
+    Called from update every frame - if the user clicks any of the 3 designated keys change to the proper build object
+    */
+    {
+        if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-            rb.isKinematic = true;
-            rb.useGravity = false;
-            rb.detectCollisions = false;
+            currentBuildType = SelectedBuildType.VerticalPillar;
+            currentBuild = verticalPillar;
+
+            //wipe the ghost object (the old object's ghost)
+            DestroyGhost();
+
+            //create new ghost for newly selected ghost
+            CreateGhost(currentBuild);
+
+            selectedObjectText.text = $"Placing: {currentBuildType}";
+        }
+
+        else if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            currentBuildType = SelectedBuildType.HorizontalPillar;
+            currentBuild = horizontalPillar;
+
+            //wipe the ghost object (the old object's ghost)
+            DestroyGhost();
+
+            //create new ghost for newly selected ghost
+            CreateGhost(currentBuild);
+
+            selectedObjectText.text = $"Placing: {currentBuildType}";        
+        }
+
+        else if (Input.GetKeyDown(KeyCode.Alpha3))
+        {
+            currentBuildType = SelectedBuildType.DefenseObject;
+            currentBuild = defenseObject;
+
+            //wipe the ghost object (the old object's ghost)
+            DestroyGhost();
+
+            //create new ghost for newly selected ghost
+            CreateGhost(currentBuild);
+
+            selectedObjectText.text = $"Placing: {currentBuildType}";
         }
     }
 
     private Bounds GetObjectBounds(GameObject obj)
     {
         Renderer[] renderers = obj.GetComponentsInChildren<Renderer>();
+
         if (renderers.Length == 0)
             return new Bounds(obj.transform.position, Vector3.zero);
 
         Bounds totalBounds = renderers[0].bounds;
+
         foreach (Renderer rend in renderers)
         {
             totalBounds.Encapsulate(rend.bounds);
         }
+
         return totalBounds;
     }
 
     private void moveGhostPrefabToRaycast()
-    {
+    {   
         Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
         RaycastHit hit;
         
         Debug.DrawRay(ray.origin, ray.direction * 200f, Color.red);
 
-        // 1. Check if ray hits anything
         if (!Physics.Raycast(ray, out hit))
         {
             isGhostInValidPosition = false;
@@ -211,7 +228,6 @@ public class DefendManager : MonoBehaviour
             return;
         }
 
-        // 2. Align ghost to surface normal
         ghostBuildGameObject.transform.up = hit.normal;
 
         Bounds bounds = GetObjectBounds(ghostBuildGameObject);
@@ -229,23 +245,18 @@ public class DefendManager : MonoBehaviour
 
         ghostBuildGameObject.transform.position = hit.point + hit.normal * offset;
 
-        // 4. Try snapping to connectors
         TrySnapGhostToConnector(hit);
 
-        // 5. If still not valid, allow ground placement
         if (!isGhostInValidPosition)
         {
-
-            //Debug.LogWarning($"Placed on Ground");
-
-            isGhostInValidPosition = true; // optional: allow placing on flat surfaces
+            isGhostInValidPosition = true;
             ghostifyModel(ModelParent, ghostMaterialValid);
-        }
+        } 
     }
 
     private void SnapGhostToConnector(Connector ghost, Connector target)
     {
-        Debug.LogWarning($"TrySnap - Ghost Connector: {ghost} ---> Target Connector {target}");
+        //Debug.LogWarning($"TrySnap - Ghost Connector: {ghost} ---> Target Connector {target}");
         Transform ghostRoot = ghostBuildGameObject.transform;
 
         // 1. ROTATION: align connectors
@@ -456,8 +467,7 @@ public class DefendManager : MonoBehaviour
         if (currentBuildType == SelectedBuildType.DefenseObject && defenseObjectPlaced)
         {
             Debug.Log("Defense object already placed! Cannot place another.");
-            Destroy(ghostBuildGameObject);
-            ghostBuildGameObject = null;
+            DestroyGhost();
             return;
         }
 
@@ -491,7 +501,6 @@ public class DefendManager : MonoBehaviour
                 AttachJointToNearbyConnector(newBuild);
             }
 
-
             if (!snappedToConnector)
             {
                 Debug.Log("Ground anchor used");
@@ -507,9 +516,9 @@ public class DefendManager : MonoBehaviour
                 joint.breakForce = 2000f;
                 joint.breakTorque = 2000f;
             }
-
-            Destroy(ghostBuildGameObject);
-            ghostBuildGameObject = null;
         }
+
+        //destroy the ghost before return - we have placed object
+        DestroyGhost();
     }
 }
