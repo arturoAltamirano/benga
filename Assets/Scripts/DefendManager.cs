@@ -21,6 +21,8 @@ public class DefendManager : MonoBehaviour
     [SerializeField] private GameObject verticalPillar;
     [SerializeField] private GameObject defenseObject;
 
+    [HideInInspector] private GameObject currentBuild;
+
     [Header("Build Settings")]
     [HideInInspector] private SelectedBuildType currentBuildType = SelectedBuildType.VerticalPillar;
     [SerializeField] private LayerMask connectorLayer;
@@ -35,7 +37,6 @@ public class DefendManager : MonoBehaviour
     [HideInInspector] public bool defenseObjectPlaced = false;
     [HideInInspector] private bool snappedToConnector = false;
     [HideInInspector] private Transform ModelParent = null;
-
     [SerializeField] private RoundManager RoundManager;
 
     [Header("Build Limits & UI")]
@@ -53,12 +54,16 @@ public class DefendManager : MonoBehaviour
 
     private void Update()
     {
+        //if we are blocked by round manager
         if (!isEnabled) return;
 
+        //if user is pressing space to switch to offense
         else if (Input.GetKeyDown(KeyCode.Space))
         {
+            //if user pressing space, and defenseObject has not been placed
             if (!defenseObjectPlaced) navigationAid.text = $"Place defenseObject to switch round!";
 
+            //otherwise - we are good to yield to attacker
             else
             {
                 //Debug.Log("Switching to attacker from defender.");
@@ -66,8 +71,10 @@ public class DefendManager : MonoBehaviour
             }
         }
 
+        //this is what will likely execute most frequently during runtime
         else
         {
+            //evaluate if user is changing the object being placed
             HandleBuildSelection();
                         
             if (ghostBuildGameObject == null)
@@ -76,8 +83,54 @@ public class DefendManager : MonoBehaviour
             if (Input.GetMouseButtonDown(0) && isGhostInValidPosition)
                 placeBuild();
 
-            ghostBuild();
+            snappedToConnector = false;
+
+            //prevent a second from being placed - ??
+            if (currentBuildType == SelectedBuildType.DefenseObject && defenseObjectPlaced)
+            {
+                DestroyGhost();
+                isGhostInValidPosition = false;
+                return;
+            }
+
+            createGhostPrefab(currentBuild);
+
+            moveGhostPrefabToRaycast();
         }   
+    }
+
+    private void HandleBuildSelection()
+    /*
+    Called from update every frame - if the user clicks any of the 3 designated keys change to the proper build object
+    */
+    {
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            currentBuildType = SelectedBuildType.VerticalPillar;
+            currentBuild = verticalPillar;
+
+            //wipe the ghost object (the old object's ghost)
+            DestroyGhost();
+            selectedObjectText.text = $"Placing: {currentBuildType}";
+        }
+
+        else if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            currentBuildType = SelectedBuildType.HorizontalPillar;
+            currentBuild = horizontalPillar;
+
+            DestroyGhost();
+            selectedObjectText.text = $"Placing: {currentBuildType}";        
+        }
+
+        else if (Input.GetKeyDown(KeyCode.Alpha3))
+        {
+            currentBuildType = SelectedBuildType.DefenseObject;
+            currentBuild = defenseObject;
+
+            DestroyGhost();
+            selectedObjectText.text = $"Placing: {currentBuildType}";
+        }
     }
 
     private void DestroyGhost()
@@ -89,72 +142,6 @@ public class DefendManager : MonoBehaviour
         }
     }
 
-    private void HandleBuildSelection()
-    {
-        bool selectionChanged = false;
-
-        if (Input.GetKeyDown(KeyCode.Alpha1))
-        {
-            currentBuildType = SelectedBuildType.VerticalPillar;
-            selectionChanged = true;
-        }
-
-        if (Input.GetKeyDown(KeyCode.Alpha2))
-        {
-            currentBuildType = SelectedBuildType.HorizontalPillar;
-            selectionChanged = true;
-        }
-
-        if (Input.GetKeyDown(KeyCode.Alpha3))
-        {
-            currentBuildType = SelectedBuildType.DefenseObject;
-            selectionChanged = true;
-        }
-
-        if (selectionChanged)
-        {
-            DestroyGhost();
-            UpdateSelectedBuildUI();
-        }
-    }
-
-    private void UpdateSelectedBuildUI()
-    {
-        if (selectedObjectText == null)
-            return;
-
-        string currentName = "None";
-        GameObject currentPrefab = getCurrentBuild();
-
-        if (currentPrefab != null)
-        currentName = currentPrefab.name;
-
-        selectedObjectText.text = $"Placing: {currentBuildType} ({currentName})";
-    }
-
-
-    private void ghostBuild()
-    {
-        //Debug.Log($"Building in BuildingManager.");
-
-        snappedToConnector = false;
-
-        GameObject currentBuild = getCurrentBuild();
-
-        //prevent a second from being placed - ??
-        if (currentBuildType == SelectedBuildType.DefenseObject && defenseObjectPlaced)
-        {
-            DestroyGhost();
-            isGhostInValidPosition = false;
-            return;
-        }
-
-        createGhostPrefab(currentBuild);
-
-        moveGhostPrefabToRaycast();
-
-    }
-
     private void createGhostPrefab(GameObject currentBuild)
     {
         if (ghostBuildGameObject == null)
@@ -163,9 +150,35 @@ public class DefendManager : MonoBehaviour
 
             ModelParent = ghostBuildGameObject.transform.GetChild(0);
 
-            ghostifyModel(ModelParent, ghostMaterialValid);
+            //ghostifyModel(ModelParent, ghostMaterialValid);
 
             ghostifyModel(ghostBuildGameObject.transform);
+        }
+    }
+
+    private void ghostifyModel(Transform modelParent, Material ghostMaterial = null)
+    {
+        if (ghostMaterial != null)
+        {
+            foreach (MeshRenderer meshRenderer in modelParent.GetComponentsInChildren<MeshRenderer>())
+            {
+                meshRenderer.material = ghostMaterial;
+            }
+        }
+
+        else
+        {
+            foreach (Collider modelColliders in modelParent.GetComponentsInChildren<Collider>())
+            {
+                modelColliders.enabled = false;
+            }
+        }
+
+        foreach (Rigidbody rb in modelParent.GetComponentsInChildren<Rigidbody>())
+        {
+            rb.isKinematic = true;
+            rb.useGravity = false;
+            rb.detectCollisions = false;
         }
     }
 
@@ -400,53 +413,6 @@ public class DefendManager : MonoBehaviour
         return;
     }
 
-    private void ghostifyModel(Transform modelParent, Material ghostMaterial = null)
-    {
-        if (ghostMaterial != null)
-        {
-            foreach (MeshRenderer meshRenderer in modelParent.GetComponentsInChildren<MeshRenderer>())
-            {
-                meshRenderer.material = ghostMaterial;
-            }
-        }
-
-        else
-        {
-            foreach (Collider modelColliders in modelParent.GetComponentsInChildren<Collider>())
-            {
-                modelColliders.enabled = false;
-            }
-        }
-
-        foreach (Rigidbody rb in modelParent.GetComponentsInChildren<Rigidbody>())
-        {
-            rb.isKinematic = true;
-            rb.useGravity = false;
-            rb.detectCollisions = false;
-        }
-    }
-
-    private GameObject getCurrentBuild()
-    {
-        switch (currentBuildType)
-        {
-
-            case SelectedBuildType.VerticalPillar:
-                return verticalPillar;
-            
-            case SelectedBuildType.HorizontalPillar:
-                return horizontalPillar;
-
-            case SelectedBuildType.DefenseObject:
-                return defenseObject;
-
-            default:
-                return null;
-        }
-
-        //return null;
-    }
-
     private void MarkConnectorsAsOccupied(GameObject placedObject)
     {
         Connector[] conns = placedObject.GetComponentsInChildren<Connector>();
@@ -497,11 +463,11 @@ public class DefendManager : MonoBehaviour
 
         if (ghostBuildGameObject != null && isGhostInValidPosition)
         {
-            GameObject prefab = getCurrentBuild();
+            //GameObject prefab = getCurrentBuild();
             Vector3 placePos = ghostBuildGameObject.transform.position;
             Quaternion placeRot = ghostBuildGameObject.transform.rotation;
 
-            GameObject newBuild = Instantiate(prefab, placePos, placeRot);
+            GameObject newBuild = Instantiate(currentBuild, placePos, placeRot);
 
             if (currentBuildType == SelectedBuildType.DefenseObject)
                 defenseObjectPlaced = true;

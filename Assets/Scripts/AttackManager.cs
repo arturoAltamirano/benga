@@ -81,29 +81,29 @@ public class AttackManager : MonoBehaviour
 
     private void HandleBulletSelection()
     /*
-    Called from update everyframe - if the user clicks any of the 3 designated keys 
-    change to the proper bullet
+    Called from update every frame - if the user clicks any of the 3 designated keys change to the proper bullet
     */
     {
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
             currentBulletType = SelectedBulletType.fastball;
             currentName = "Fastball";
+            selectedObjectText.text = $"Shooting: {currentName}";
         }
 
-        if (Input.GetKeyDown(KeyCode.Alpha2))
+        else if (Input.GetKeyDown(KeyCode.Alpha2))
         {
             currentBulletType = SelectedBulletType.scattershot;
             currentName = "Scattershot";
+            selectedObjectText.text = $"Shooting: {currentName}";
         }
 
-        if (Input.GetKeyDown(KeyCode.Alpha3))
+        else if (Input.GetKeyDown(KeyCode.Alpha3))
         {
             currentBulletType = SelectedBulletType.slug;
             currentName = "Slug";
+            selectedObjectText.text = $"Shooting: {currentName}";
         }
-
-        selectedObjectText.text = $"Shooting: {currentName}";
     } 
 
     public void ResetAmmo()
