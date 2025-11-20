@@ -478,13 +478,13 @@ public class DefendManager : MonoBehaviour
         switch (currentBuildType)
         {
             case SelectedBuildType.VerticalPillar:
-                AttachJointToNearbyConnector(newBuild, 10000f, 10000f);
+                AttachJointToNearbyConnector(newBuild, 100000f, 100000f);
 
                 DestroyGhost();
             break;
 
             case SelectedBuildType.HorizontalPillar:
-                AttachJointToNearbyConnector(newBuild, 10000f, 10000f);
+                AttachJointToNearbyConnector(newBuild, 100000f, 100000f);
 
                 DestroyGhost();
             break;
