@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class killZone : MonoBehaviour
@@ -13,7 +14,7 @@ public class killZone : MonoBehaviour
     {
         if (other.CompareTag("DefenseObject"))
         {
-            //Debug.Log("killzone script: Defense object hit kill zone");
+            Debug.Log("killzone script: Defense object hit kill zone");
 
             RoundManager.attackerScore += 1;
 

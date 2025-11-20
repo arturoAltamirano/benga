@@ -180,7 +180,7 @@ public class AttackManager : MonoBehaviour
 
     private void LaunchFastball()
     {
-        launchForce = 50000f;
+        launchForce = 4000f;
 
         GameObject fastBall = SpawnBullet(FastBall);
         Rigidbody rb = fastBall.GetComponent<Rigidbody>();
@@ -191,7 +191,7 @@ public class AttackManager : MonoBehaviour
     private void LaunchScattershot()
     {
         //these are small and with low mass - less launch force
-        launchForce = 1000f;
+        launchForce = 4000f;
 
         //we want 5 pellets
         for (int i = 0; i < 5; i++)
@@ -211,7 +211,7 @@ public class AttackManager : MonoBehaviour
     private void LaunchSlug()
     {
         //more mass so need more launch force
-        launchForce = 400000f;
+        launchForce = 200000f;
 
         GameObject slug = SpawnBullet(Slug);
         Rigidbody rb = slug.GetComponent<Rigidbody>();

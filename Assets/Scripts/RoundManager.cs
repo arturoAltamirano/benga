@@ -22,7 +22,6 @@ public class RoundManager : MonoBehaviour
 
     [Header("UI Elements")]
     [SerializeField] private TextMeshProUGUI scoreboardText;
-    [SerializeField] private TextMeshProUGUI currentlyPlacingText;
     [SerializeField] private TextMeshProUGUI phaseTimerText;
     [SerializeField] private TextMeshProUGUI navigationAid;
     private float scoreboardTimer;
@@ -45,7 +44,7 @@ public class RoundManager : MonoBehaviour
         //switch from attacker to defender
         if (currentPhase == Phase.Defender)
         {
-            Debug.Log("Switch to defense.");
+            //Debug.Log("Switch to defense.");
 
             //Debug.Log($"Start Phase: {currentPhase} to {desiredPhase}");
             navigationAid.text = $"1 - Vertical Pillar \n2 - Horizontal Pillar \n3 - Defense Object";
@@ -76,7 +75,7 @@ public class RoundManager : MonoBehaviour
         //vice versa...defender to attacker
         else if (currentPhase == Phase.Attacker)
         {
-            Debug.Log("Switch to offense.");
+            //Debug.Log("Switch to offense.");
 
             //Debug.Log($"Start Phase: {currentPhase} to {desiredPhase}");
             navigationAid.text = $"1 - Fastball \n2 - Scattershot \n3 - Curveball";
