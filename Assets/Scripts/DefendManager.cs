@@ -4,6 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEditor.Animations;
 using Unity.VisualScripting;
+using UnityEngine.Video;
 
 public class DefendManager : MonoBehaviour
 {
@@ -37,7 +38,6 @@ public class DefendManager : MonoBehaviour
     [HideInInspector] private GameObject ghostBuildGameObject;
     [HideInInspector] private bool isGhostInValidPosition = false;
     [HideInInspector] public bool defenseObjectPlaced = false;
-    [HideInInspector] private bool snappedToConnector = false;
     [HideInInspector] private Transform ModelParent = null;
     [SerializeField] private RoundManager RoundManager;
 
@@ -68,6 +68,9 @@ public class DefendManager : MonoBehaviour
             //otherwise - we are good to yield to attacker
             else
             {
+                //destroy any ghost currently being displayed
+                DestroyGhost();
+
                 //Debug.Log("Switching to attacker from defender.");
                 RoundManager.SwitchPhase(RoundManager.Phase.Attacker);
             }
@@ -76,6 +79,8 @@ public class DefendManager : MonoBehaviour
         //this is what will likely execute most frequently during runtime
         else
         {
+            selectedObjectText.text = $"Placing: {currentBuildType}";
+
             //evaluate if user is changing the object being placed
             HandleBuildSelection();
 
@@ -88,7 +93,7 @@ public class DefendManager : MonoBehaviour
                 //if user is clicking to place the object, and it is in valid position
                 if (Input.GetMouseButtonDown(0) && isGhostInValidPosition)
                 {
-                    placeBuild();
+                    PlaceBuild();
 
                     //we still need to create a new ghost, after destroying the previous following placement
                     CreateGhost(currentBuild);
@@ -166,7 +171,7 @@ public class DefendManager : MonoBehaviour
             //create new ghost for newly selected ghost
             CreateGhost(currentBuild);
 
-            selectedObjectText.text = $"Placing: {currentBuildType}";
+            //selectedObjectText.text = $"Placing: {currentBuildType}";
         }
 
         else if (Input.GetKeyDown(KeyCode.Alpha2))
@@ -180,7 +185,7 @@ public class DefendManager : MonoBehaviour
             //create new ghost for newly selected ghost
             CreateGhost(currentBuild);
 
-            selectedObjectText.text = $"Placing: {currentBuildType}";        
+            //selectedObjectText.text = $"Placing: {currentBuildType}";        
         }
 
         else if (Input.GetKeyDown(KeyCode.Alpha3))
@@ -194,7 +199,7 @@ public class DefendManager : MonoBehaviour
             //create new ghost for newly selected ghost
             CreateGhost(currentBuild);
 
-            selectedObjectText.text = $"Placing: {currentBuildType}";
+            //selectedObjectText.text = $"Placing: {currentBuildType}";
         }
     }
 
@@ -216,51 +221,31 @@ public class DefendManager : MonoBehaviour
     }
 
     private void moveGhostPrefabToRaycast()
-    {   
-        float offset = 0.0f;
+    {
+        if (ghostBuildGameObject == null || ModelParent == null)
+            return;
 
-        //hit object and raycast from center of viewport 
         Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
-        
-        //Debug.DrawRay(ray.origin, ray.direction * 200f, Color.red);
 
-        //if our ray does not hit something, we are in an invalid position
-        if (Physics.Raycast(ray, out RaycastHit hit) == false)
+        if (!Physics.Raycast(ray, out RaycastHit hit))
         {
             isGhostInValidPosition = false;
-            //ghostifyModel(ModelParent, ghostMaterialInvalid);
+            ghostifyModel(ModelParent, ghostMaterialInvalid);
             return;
         }
-
-        else
-        {
-            TrySnapGhostToConnector(hit);
-        }
-
-        //if I don't include this, the object is morphed into the ground
-        //i am almost certain this is because the ray is in the ground
-        //so when we set something, it is centered in the ground 
+        
+        //ghostBuildGameObject.transform.up = hit.normal;
+        
         Bounds bounds = GetObjectBounds(ghostBuildGameObject);
+        float offset;
 
-        //if its vertical it's going in the ground, offset by y and move it up
-        if (currentBuildType == SelectedBuildType.VerticalPillar)
-        {
-            offset = bounds.extents.y;
-        }
-
-        //if it is a horizontal object, we offset by x and z axis
-        else if (currentBuildType == SelectedBuildType.HorizontalPillar)
-        {
-            offset = Mathf.Max(bounds.extents.x, bounds.extents.z);
-        }
+        if (currentBuildType == SelectedBuildType.VerticalPillar) offset = bounds.extents.y;
+        else offset = Mathf.Max(bounds.extents.x, bounds.extents.z);
 
         ghostBuildGameObject.transform.position = hit.point + hit.normal * offset;
 
-        if (!isGhostInValidPosition)
-        {
-            isGhostInValidPosition = true;
-            ghostifyModel(ModelParent, ghostMaterialValid);
-        } 
+        TrySnapGhostToConnector(hit);
+        ghostifyModel(ModelParent, isGhostInValidPosition ? ghostMaterialValid : ghostMaterialInvalid);
     }
 
     private void SnapGhostToConnector(Connector ghost, Connector target)
@@ -276,12 +261,12 @@ public class DefendManager : MonoBehaviour
         Vector3 positionDelta = target.transform.position - ghost.transform.position;
         ghostRoot.position += positionDelta;
 
-        snappedToConnector = true;
         isGhostInValidPosition = true;
         ghostifyModel(ModelParent, ghostMaterialValid);
 
         return;
     }
+    
 
     private void TrySnapGhostToConnector(RaycastHit hit)
     {
@@ -305,7 +290,6 @@ public class DefendManager : MonoBehaviour
             if (targetConnector == null)
             {
                 isGhostInValidPosition = false;
-                snappedToConnector = false;
                 return;
             }
 
@@ -332,7 +316,6 @@ public class DefendManager : MonoBehaviour
                 if (ghostConnector == null)
                 {
                     isGhostInValidPosition = false;
-                    snappedToConnector = false;
                     return;
                 }
             }
@@ -356,7 +339,6 @@ public class DefendManager : MonoBehaviour
                 if (ghostConnector == null)
                 {
                     isGhostInValidPosition = false;
-                    snappedToConnector = false;
                     return;
                 }
             }
@@ -396,7 +378,6 @@ public class DefendManager : MonoBehaviour
             if (targetConnector == null)
             {
                 isGhostInValidPosition = false;
-                snappedToConnector = false;
                 return;
             }
 
@@ -419,7 +400,6 @@ public class DefendManager : MonoBehaviour
             if (ghostConnector == null)
             {
                 isGhostInValidPosition = false;
-                snappedToConnector = false;
                 return;
             }
 
@@ -433,12 +413,6 @@ public class DefendManager : MonoBehaviour
         return;
     }
 
-    private void MarkConnectorsAsOccupied(GameObject placedObject)
-    {
-        Connector[] conns = placedObject.GetComponentsInChildren<Connector>();
-        foreach (var c in conns)
-            c.isOccupied = true;
-    }
 
     private void AttachJointToNearbyConnector(GameObject placedObj)
     {
@@ -468,66 +442,88 @@ public class DefendManager : MonoBehaviour
             }
         }
     }
+    
 
-    private void placeBuild()
+    private void AttachVertical(GameObject newBuild)
     {
-        snappedToConnector = false;
+        AttachJointToNearbyConnector(newBuild);
+        
+    }
 
-        if (currentBuildType == SelectedBuildType.DefenseObject && defenseObjectPlaced)
+    private void AttachHorizontal(GameObject newBuild)
+    {
+        AttachJointToNearbyConnector(newBuild);
+        
+    }
+
+    private void AttachDefenseObject(GameObject newBuild)
+    {
+        AttachJointToNearbyConnector(newBuild);
+        
+    }
+
+    private void AttachToConnector(SelectedBuildType currentBuildType, GameObject newBuild)
+    /*
+    The same structure as AttackManager, a case dispatcher tied to 3 individual logic blocks
+    This is not clean and sleek, but legible and sensible. I prefer simplicity and interpretability to 
+    advanced structures or minimalist syntax.
+    */
+    {
+        //depending on type of bullet - call a different launch function
+        switch (currentBuildType)
         {
-            Debug.Log("Defense object already placed! Cannot place another.");
-            DestroyGhost();
-            return;
+            case SelectedBuildType.DefenseObject:
+            
+            if (defenseObjectPlaced) return; 
+            else defenseObjectPlaced = true;
+
+            AttachDefenseObject(newBuild);
+            break;
+
+            case SelectedBuildType.VerticalPillar:
+            AttachVertical(newBuild);
+            break;
+
+            //slug uses 5 bullet resources so we need to check if valid
+            case SelectedBuildType.HorizontalPillar:
+            AttachHorizontal(newBuild);
+            break;
         }
+    }
 
-        if (ghostBuildGameObject != null && isGhostInValidPosition)
+    private void PlaceBuild()
+    {
+        if (ghostBuildGameObject == null || !isGhostInValidPosition) return;
+
+        else
         {
-            //GameObject prefab = getCurrentBuild();
-            Vector3 placePos = ghostBuildGameObject.transform.position;
-            Quaternion placeRot = ghostBuildGameObject.transform.rotation;
+            //we are trying to place an object at the ghost position, so we need to get the ghost objects placement rotation etc 
+            ghostBuildGameObject.transform.GetPositionAndRotation(out Vector3 placePos, out Quaternion placeRot);
 
+            //instantiate the current build according to the selected build and get the rigidbody
             GameObject newBuild = Instantiate(currentBuild, placePos, placeRot);
-
-            if (currentBuildType == SelectedBuildType.DefenseObject)
-                defenseObjectPlaced = true;
-
-
             Rigidbody rb = newBuild.GetComponent<Rigidbody>();
 
+            //save this for clean up when round is over
             placedObjects.Add(newBuild);
 
-            // Mark connectors
-            MarkConnectorsAsOccupied(newBuild);
+            //Connector[] conns = newBuild.GetComponentsInChildren<Connector>();
+            //foreach (var c in conns)
+                //c.isOccupied = true;
 
+            //an unnecessary safety check to make sure we set this as a physical object 
+            //since ghosts are kinematic, it is a good idea to sanity check this here 
             if (rb != null)
             {
-
                 rb.isKinematic = false;
                 rb.useGravity = true; 
                 rb.detectCollisions = true;
 
-                // Attach joint to any connected world connector
-                AttachJointToNearbyConnector(newBuild);
+                //call our dispatcher to attach our newly minted object to a connector
+                AttachToConnector(currentBuildType, newBuild);
             }
-
-            if (!snappedToConnector)
-            {
-                Debug.Log("Ground anchor used");
-                // Create a fake “ground anchor”
-                GameObject groundAnchor = new GameObject("GroundAnchor");
-                groundAnchor.transform.position = newBuild.transform.position;
-
-                Rigidbody anchorRb = groundAnchor.AddComponent<Rigidbody>();
-                anchorRb.isKinematic = true;
-
-                FixedJoint joint = newBuild.AddComponent<FixedJoint>();
-                joint.connectedBody = anchorRb;
-                joint.breakForce = 2000f;
-                joint.breakTorque = 2000f;
-            }
+            //destroy the current ghost of the object we just placed
+            DestroyGhost();
         }
-
-        //destroy the ghost before return - we have placed object
-        DestroyGhost();
     }
 }

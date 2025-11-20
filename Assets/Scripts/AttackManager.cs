@@ -76,6 +76,8 @@ public class AttackManager : MonoBehaviour
 
             //if user selects a different ball - update UI
             HandleBulletSelection();
+
+            selectedObjectText.text = $"Shooting: {currentName}";
         }
     }
 
@@ -88,21 +90,21 @@ public class AttackManager : MonoBehaviour
         {
             currentBulletType = SelectedBulletType.fastball;
             currentName = "Fastball";
-            selectedObjectText.text = $"Shooting: {currentName}";
+            //selectedObjectText.text = $"Shooting: {currentName}";
         }
 
         else if (Input.GetKeyDown(KeyCode.Alpha2))
         {
             currentBulletType = SelectedBulletType.scattershot;
             currentName = "Scattershot";
-            selectedObjectText.text = $"Shooting: {currentName}";
+            //selectedObjectText.text = $"Shooting: {currentName}";
         }
 
         else if (Input.GetKeyDown(KeyCode.Alpha3))
         {
             currentBulletType = SelectedBulletType.slug;
             currentName = "Slug";
-            selectedObjectText.text = $"Shooting: {currentName}";
+            //selectedObjectText.text = $"Shooting: {currentName}";
         }
     } 
 
@@ -178,7 +180,7 @@ public class AttackManager : MonoBehaviour
 
     private void LaunchFastball()
     {
-        launchForce = 2000f;
+        launchForce = 50000f;
 
         GameObject fastBall = SpawnBullet(FastBall);
         Rigidbody rb = fastBall.GetComponent<Rigidbody>();
@@ -209,7 +211,7 @@ public class AttackManager : MonoBehaviour
     private void LaunchSlug()
     {
         //more mass so need more launch force
-        launchForce = 10000f;
+        launchForce = 400000f;
 
         GameObject slug = SpawnBullet(Slug);
         Rigidbody rb = slug.GetComponent<Rigidbody>();

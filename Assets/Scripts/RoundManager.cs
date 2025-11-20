@@ -13,7 +13,6 @@ public class RoundManager : MonoBehaviour
     [SerializeField] private float defenderPhaseDuration;
     [SerializeField] private float attackerPhaseDuration;
     [HideInInspector] public Phase currentPhase;
-    [HideInInspector] public bool attackerWin = false;
     [HideInInspector] public int attackerScore = 0;
     [HideInInspector] public int defenderScore = 0;
 

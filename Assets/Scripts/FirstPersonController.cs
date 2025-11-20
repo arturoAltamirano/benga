@@ -2,46 +2,53 @@ using UnityEngine;
 
 public class FirstPersonController : MonoBehaviour
 {
-    [SerializeField] private float movementSpeed = 50f;
-    [SerializeField] private float lookSpeed = 2f;
-    [SerializeField] private Transform cameraTransform;
+    [Header("References")]
+    public Transform lookRoot;
+    public Transform cam;
 
-    private float rotationX = 0f;
-    private float rotationY = 0f;
+    [Header("Settings")]
+    public float mouseSensitivity = 2f;
+    public float moveSpeed = 8f;
 
+    private float pitch = 0f;
     private Rigidbody rb;
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        rb.freezeRotation = true;   // Important!
+
         Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
     void Update()
     {
-        // Mouse Look
-        rotationX += Input.GetAxis("Mouse X") * lookSpeed;
-        rotationY -= Input.GetAxis("Mouse Y") * lookSpeed;
-        rotationY = Mathf.Clamp(rotationY, -90f, 90f);
+        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity;
+        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity;
 
-        transform.localRotation = Quaternion.Euler(0, rotationX, 0);
-        cameraTransform.localRotation = Quaternion.Euler(rotationY, 0, 0);
+        transform.Rotate(Vector3.up * mouseX);
+
+        pitch -= mouseY;
+        pitch = Mathf.Clamp(pitch, -90f, 90f);
+        lookRoot.localRotation = Quaternion.Euler(pitch, 0f, 0f);
     }
 
     void FixedUpdate()
     {
-        // Movement
-        float moveX = Input.GetAxis("Horizontal");
-        float moveZ = Input.GetAxis("Vertical");
+        float x = Input.GetAxis("Horizontal");
+        float z = Input.GetAxis("Vertical");
 
-        float moveY = 0f;
-        if (Input.GetKey(KeyCode.UpArrow)) moveY += 1f;
-        if (Input.GetKey(KeyCode.DownArrow)) moveY -= 1f;
+    
+        float y = 0f;
+        if (Input.GetKey(KeyCode.UpArrow))   y += 1f;
+        if (Input.GetKey(KeyCode.DownArrow)) y -= 1f;
 
-        Vector3 move = (transform.right * moveX +
-                        transform.forward * moveZ +
-                        Vector3.up * moveY).normalized;
+        Vector3 move =
+            (transform.right * x +
+            transform.forward * z +
+            Vector3.up * y).normalized;
 
-        rb.MovePosition(rb.position + move * movementSpeed * Time.fixedDeltaTime);
+        rb.MovePosition(rb.position + move * moveSpeed * Time.fixedDeltaTime);
     }
 }
