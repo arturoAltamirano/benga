@@ -15,7 +15,7 @@ public class AttackManager : MonoBehaviour
     [SerializeField] public int MaxBalls = 10;
     [HideInInspector] private float launchForce = 10000f; 
     [HideInInspector] private int currentAmmo = 10;
-    [HideInInspector] float ammoExhaustedTimer = 10f;
+    [HideInInspector] float ammoExhaustedTimer = 5f;
 
     [Header("UI Elements and Scripts")]
     [SerializeField] private RoundManager RoundManager;  
@@ -56,11 +56,13 @@ public class AttackManager : MonoBehaviour
             //i do this to give time for round to 'settle' after all round shot 
             ammoExhaustedTimer -= Time.deltaTime;
 
+            //Debug.Log($"Ammo Exhuasted - {currentAmmo}");
+
             //ensure our defense object isn't mid fall/some other weird situation
             //we need to switch round now 
-            if (ammoExhaustedTimer == 0)
+            if (ammoExhaustedTimer <= 0)
             {
-                Debug.Log("Switching to attacker from defender.");
+                //Debug.Log("Switching to defender - player out of bullets");
                 RoundManager.SwitchPhase(RoundManager.Phase.Defender);
             }
         }
@@ -77,8 +79,19 @@ public class AttackManager : MonoBehaviour
             //if user selects a different ball - update UI
             HandleBulletSelection();
 
+            //Debug.Log($"Ammo left - {currentAmmo}");
+
             selectedObjectText.text = $"Shooting: {currentName}";
         }
+    }
+
+    public void ResetAmmo()
+    /*
+    Set Ammo count back to the default max - RoundManager needs to use this om phase switch
+    */
+    {
+        currentAmmo = MaxBalls;
+        counterText.text = $"Ammo: {currentAmmo} / {MaxBalls}";
     }
 
     private void HandleBulletSelection()
@@ -107,15 +120,6 @@ public class AttackManager : MonoBehaviour
             //selectedObjectText.text = $"Shooting: {currentName}";
         }
     } 
-
-    public void ResetAmmo()
-    /*
-    Set Ammo count back to the default max - RoundManager needs to use this om phase switch
-    */
-    {
-        currentAmmo = MaxBalls;
-        counterText.text = $"Ammo: {currentAmmo} / {MaxBalls}";
-    }
 
     public void LaunchBall()
     /*
@@ -180,7 +184,7 @@ public class AttackManager : MonoBehaviour
 
     private void LaunchFastball()
     {
-        launchForce = 5000f;
+        launchForce = 20000f;
 
         GameObject fastBall = SpawnBullet(FastBall);
         Rigidbody rb = fastBall.GetComponent<Rigidbody>();
@@ -211,7 +215,7 @@ public class AttackManager : MonoBehaviour
     private void LaunchSlug()
     {
         //more mass so need more launch force
-        launchForce = 50000f;
+        launchForce = 500000f;
 
         GameObject slug = SpawnBullet(Slug);
         Rigidbody rb = slug.GetComponent<Rigidbody>();

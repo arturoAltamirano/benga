@@ -1,11 +1,7 @@
-using UnityEngine;
 using TMPro;
-using System.Linq;
+using UnityEngine;
 using System.Collections.Generic;
-using UnityEditor.Animations;
-using Unity.VisualScripting;
-using UnityEngine.Video;
-using System;
+
 
 public class DefendManager : MonoBehaviour
 {
@@ -29,8 +25,10 @@ public class DefendManager : MonoBehaviour
     [Header("Build Settings")]
     [HideInInspector] private SelectedBuildType currentBuildType = SelectedBuildType.VerticalPillar;
     [SerializeField] private LayerMask connectorLayer;
-    public Connector targetConnector = null;
-    public Connector ghostConnector = null;
+    [HideInInspector] public Connector targetConnector = null;
+    [HideInInspector] public Connector ghostConnector = null;
+    [SerializeField] public float breakForce;
+    [SerializeField] public float breakTorque;
 
     [Header("Ghost Settings")]
     [SerializeField] private Material ghostMaterialValid;
@@ -276,7 +274,7 @@ public class DefendManager : MonoBehaviour
     {
         if(ghost == null || target == null) return;
 
-        //Debug.LogWarning($"TrySnap - Ghost Connector: {ghost} ---> Target Connector {target}");
+        Debug.LogWarning($"TrySnap - Ghost Connector: {ghost} ---> Target Connector {target}");
         
         //start by getting the ghosts current position at this time
         Transform ghostRoot = ghostBuildGameObject.transform;
@@ -305,7 +303,9 @@ public class DefendManager : MonoBehaviour
         //we are going to define an overlap sphere positioned at our 'hit' point, this will collect 
         //all of the connectors within a given radius of our raycast 
         //this will tell us what the user might be looking at
+        #pragma warning disable UNT0028 // Use non-allocating physics APIs
         Collider[] nearbyColliders = Physics.OverlapSphere(hit.point, 5f, connectorLayer);
+        #pragma warning restore UNT0028 // Use non-allocating physics APIs
 
         //we want this to be the minimal of our nearbyColliders
         Collider closestCollider;
@@ -362,8 +362,10 @@ public class DefendManager : MonoBehaviour
 
     private void SetConnectorHorizontal(RaycastHit hit)
     {
-        //all connectors near our raycast 
+        //all connectors near our raycast  - this stuff with UNT stuff was suggested by intellisense
+        #pragma warning disable UNT0028 // Use non-allocating physics APIs
         Collider[] nearbyColliders = Physics.OverlapSphere(hit.point, 5f, connectorLayer);
+        #pragma warning restore UNT0028 // Use non-allocating physics APIs
         Collider closestCollider;
 
         //quick check to ensure no bounds errors
@@ -446,6 +448,7 @@ public class DefendManager : MonoBehaviour
 
                 ghostifyModel(ModelParent, ghostMaterialValid);
                 isGhostInValidPosition = true;
+                
             break;
         }
     }
@@ -478,24 +481,31 @@ public class DefendManager : MonoBehaviour
         switch (currentBuildType)
         {
             case SelectedBuildType.VerticalPillar:
-                AttachJointToNearbyConnector(newBuild, 100000f, 100000f);
+                AttachJointToNearbyConnector(newBuild, breakForce, breakTorque);
 
                 DestroyGhost();
+
             break;
 
             case SelectedBuildType.HorizontalPillar:
-                AttachJointToNearbyConnector(newBuild, 100000f, 100000f);
+                AttachJointToNearbyConnector(newBuild, breakForce, breakTorque);
 
                 DestroyGhost();
+
             break;
 
             case SelectedBuildType.DefenseObject:
-                if (defenseObjectPlaced) return; 
+                if (defenseObjectPlaced)
+                {
+                    DestroyGhost();
+                    Destroy(newBuild);
+                    return;
+                }
+
                 else defenseObjectPlaced = true;
 
-                AttachJointToNearbyConnector(newBuild, 100f, 100f);
+                AttachJointToNearbyConnector(newBuild, 1000f, 1000f);
 
-                DestroyGhost();
             break;
         }
     }
@@ -524,12 +534,14 @@ public class DefendManager : MonoBehaviour
             //since ghosts are kinematic, it is a good idea to sanity check this here 
             if (rb != null)
             {
+                //call our dispatcher to attach our newly minted object to a connector
+                AttachToConnector(currentBuildType, newBuild);
+
+                //make sure these are set properly so the attacker can actually destroy the structure
                 rb.isKinematic = false;
                 rb.useGravity = true; 
                 rb.detectCollisions = true;
-
-                //call our dispatcher to attach our newly minted object to a connector
-                AttachToConnector(currentBuildType, newBuild);
+                rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
             }
         }
     }

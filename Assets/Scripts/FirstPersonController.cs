@@ -1,28 +1,33 @@
+using TMPro;
 using UnityEngine;
+using System.Collections.Generic;
 
 public class FirstPersonController : MonoBehaviour
 {
     [Header("References")]
     public Transform lookRoot;
-    public Transform cam;
 
     [Header("Settings")]
-    public float mouseSensitivity = 2f;
     public float moveSpeed = 8f;
+    public float mouseSensitivity = 2f;
 
-    private float pitch = 0f;
+    [Header("Rigidbody")]
     private Rigidbody rb;
+    private float pitch = 0f;
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        rb.freezeRotation = true;   // Important!
+        rb.freezeRotation = true;
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
 
     void Update()
+    /*
+    Look movement every frame, mouse to look around
+    */
     {
         float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity;
         float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity;
@@ -35,6 +40,9 @@ public class FirstPersonController : MonoBehaviour
     }
 
     void FixedUpdate()
+    /*
+    Fixed movement, how you move through the world and up and down
+    */
     {
         float x = Input.GetAxis("Horizontal");
         float z = Input.GetAxis("Vertical");

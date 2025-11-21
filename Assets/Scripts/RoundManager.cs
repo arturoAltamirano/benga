@@ -1,5 +1,6 @@
-using UnityEngine;
 using TMPro;
+using UnityEngine;
+using System.Collections.Generic;
 
 public class RoundManager : MonoBehaviour
 {
@@ -47,7 +48,7 @@ public class RoundManager : MonoBehaviour
             //Debug.Log("Switch to defense.");
 
             //Debug.Log($"Start Phase: {currentPhase} to {desiredPhase}");
-            navigationAid.text = $"1 - Vertical Pillar \n2 - Horizontal Pillar \n3 - Defense Object";
+            navigationAid.text = $"1 - Vertical Pillar \n2 - Horizontal Pillar \n3 - Defense Object \nSpace - Finished Building";
 
             //set the defenders designated timer
             scoreboardTimer = defenderPhaseDuration;
@@ -99,10 +100,23 @@ public class RoundManager : MonoBehaviour
     {
         scoreboardTimer -= Time.deltaTime;
 
-        //if we have exhausted our timer for whatever phase
-        if (scoreboardTimer <= 0)
+        if (scoreboardTimer <= 10)
         {
-            SwitchPhase(currentPhase == Phase.Defender ? Phase.Attacker : Phase.Defender);
+            if (currentPhase == Phase.Defender) navigationAid.text = $"Hurry! Set your DefenseObject and hit space bar!";
+            else navigationAid.text = $"Hurry! Defender will win when timer strikes 0!";
+
+            //if we have exhausted our timer for whatever phase
+            if (scoreboardTimer <= 0)
+            {
+                //defender exhausted their time - give attacker a point and warn them
+                if (currentPhase == Phase.Defender) attackerScore++;
+                else defenderScore++;
+
+                //no matter what, we want to go back to defender
+                SwitchPhase(Phase.Defender);
+                navigationAid.text = $"Time expired!";
+                scoreboardText.text = $"Attacker: {attackerScore} | Defender: {defenderScore}";
+            }
         }
 
         //update our timer 
