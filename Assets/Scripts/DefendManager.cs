@@ -41,7 +41,6 @@ public class DefendManager : MonoBehaviour
     [HideInInspector] public bool defenseObjectPlaced = false;
     [HideInInspector] private Transform ModelParent = null;
     [SerializeField] private RoundManager RoundManager;
-    private Quaternion manualRotationOffset = Quaternion.identity;
 
     [Header("Build Limits & UI")]
     [SerializeField] private TextMeshProUGUI selectedObjectText;
@@ -91,8 +90,6 @@ public class DefendManager : MonoBehaviour
             {
                 //continously update the position of the ghost to where user is raycasting
                 moveGhostPrefabToRaycast();
-
-                HandleGhostRotationInput();
 
                 //if user is clicking to place the object, and it is in valid position
                 if (Input.GetMouseButtonDown(0) && isGhostInValidPosition)
@@ -264,28 +261,11 @@ public class DefendManager : MonoBehaviour
             ghostBuildGameObject.transform.position = hit.point + hit.normal * offset;
         }
 
-        ghostBuildGameObject.transform.rotation = manualRotationOffset;
-
         //here is where it becomes complicated - we will try to move this object to a connector we may be looking at 
         TrySnapToConnector(currentBuildType, hit);
         //if the ghost is in a valid position now, set the color properly
         ghostifyModel(ModelParent, isGhostInValidPosition ? ghostMaterialValid : ghostMaterialInvalid);
     }
-
-    private void HandleGhostRotationInput()
-    {
-        if (!ghostBuildGameObject) return;
-
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            manualRotationOffset *= Quaternion.Euler(0, 45f, 0);
-
-            Debug.Log($"User rotated placement = {manualRotationOffset}");
-
-            ghostBuildGameObject.transform.rotation = manualRotationOffset;
-        }
-    }
-
 
     private void SnapGhostToConnector(Connector ghost, Connector target, bool horizontalToVertical, bool verticalToHorizontal)
     /*
@@ -297,102 +277,60 @@ public class DefendManager : MonoBehaviour
 
         if(ghost == null || target == null) return;
 
+        //Debug.LogWarning($"TrySnap - Ghost Connector: {ghost} ---> Target Connector {target}");
+        
         //start by getting the ghosts current position at this time
         Transform ghostRoot = ghostBuildGameObject.transform;
+
+        //we first want to align these connectors which will have inherently opposite rotations
+        //since all connectors were placed as clones of one another, they all have the same rotational
+        //orientation, but are place in different directions on their parent prefab
         Quaternion rotationDelta = target.transform.rotation * Quaternion.Inverse(ghost.transform.rotation);
-
-        if (horizontalToVertical == false && verticalToHorizontal == false)
-        {
-            //we first want to align these connectors which will have inherently opposite rotations
-            //since all connectors were placed as clones of one another, they all have the same rotational
-            //orientation, but are place in different directions on their parent prefab
-            ghostRoot = ghostBuildGameObject.transform;
-            rotationDelta = target.transform.rotation * Quaternion.Inverse(ghost.transform.rotation);
-            ghostRoot.rotation = rotationDelta * ghostRoot.rotation;
-
-            //move the ghost connector to the target connector, now with the proper rotation
-            //this moves the whole block into place, and provides a good point to anchor at
-            Vector3 positionDelta = target.transform.position - ghost.transform.position;
-            ghostRoot.position += positionDelta;
-
-            //set this true since we must be in a valid point if we've snapped 
-            //and make sure we're still displaying as a ghost
-            isGhostInValidPosition = true;
-            ghostifyModel(ModelParent, ghostMaterialValid);
-        }
-        
+        ghostRoot.rotation = rotationDelta * ghostRoot.rotation;
 
         //we need to handle horizontal beams - works perfectly for vertical but puts 
         //horizontals into the floor as is - this is a rotation issue
-        else if (horizontalToVertical)
+        if (horizontalToVertical)
         {
             if (target.connectorPosition == ConnectorPosition.right) 
                 ghostRoot.Rotate(90f, 0f, 0f, Space.Self);
-                //extra = Quaternion.Euler(90f, 0f, 0f);
 
             else if (target.connectorPosition == ConnectorPosition.left)
                 ghostRoot.Rotate(-90f, 0f, 0f, Space.Self);
-                //extra = Quaternion.Euler(-90f, 0f, 0f);
             
             else if (target.connectorPosition == ConnectorPosition.front)
                 ghostRoot.Rotate(0f, 0f, 90f, Space.Self);
-                //extra = Quaternion.Euler(0f, 0f, 90f);
 
             else if (target.connectorPosition == ConnectorPosition.back)
                 ghostRoot.Rotate(0f, 0f, -90f, Space.Self);  
-                //extra = Quaternion.Euler(0f, 0f, -90f);
-
-            ghostRoot.rotation = rotationDelta * ghostRoot.rotation;
-            //ghostRoot.rotation = rotationDelta * extra;
-
-            //move the ghost connector to the target connector, now with the proper rotation
-            //this moves the whole block into place, and provides a good point to anchor at
-            Vector3 positionDelta = target.transform.position - ghost.transform.position;
-            ghostRoot.position += positionDelta;
-
-            //set this true since we must be in a valid point if we've snapped 
-            //and make sure we're still displaying as a ghost
-            isGhostInValidPosition = true;
-            ghostifyModel(ModelParent, ghostMaterialValid);
-
-            return;
         }
 
         else if (verticalToHorizontal)
         {
-            navigationAid.text = $"Rotate with R key, then hit enter to confirm.";
-
             if (ghost.connectorPosition == ConnectorPosition.right) 
                 ghostRoot.Rotate(-90f, 0f, -90f, Space.Self);
-                    //extra = Quaternion.Euler(90f, 0f, -90f);
 
             else if (ghost.connectorPosition == ConnectorPosition.left)
-                ghostRoot.Rotate(-90f, 0f, -90f, Space.Self);
-                    //extra = Quaternion.Euler(-90f, 0f, -90f);
+                ghostRoot.Rotate(-90f, 0f, 0f, Space.Self);
             
             else if (ghost.connectorPosition == ConnectorPosition.front)
                 ghostRoot.Rotate(0f, 0f, 90f, Space.Self);
-                    //extra = Quaternion.Euler(0f, 0f, 90f);
 
             else if (ghost.connectorPosition == ConnectorPosition.back)
                 ghostRoot.Rotate(0f, 0f, -90f, Space.Self);  
-                    //extra = Quaternion.Euler(0f, 0f, -90f);
-
-            ghostRoot.rotation = rotationDelta * manualRotationOffset;
-            //ghostRoot.rotation = rotationDelta * extra;
-
-            //move the ghost connector to the target connector, now with the proper rotation
-            //this moves the whole block into place, and provides a good point to anchor at
-            Vector3 positionDelta = target.transform.position - ghost.transform.position;
-            ghostRoot.position += positionDelta;
-
-            //set this true since we must be in a valid point if we've snapped 
-            //and make sure we're still displaying as a ghost
-            isGhostInValidPosition = true;
-            ghostifyModel(ModelParent, ghostMaterialValid);
-
-            return;
         }
+
+        //move the ghost connector to the target connector, now with the proper rotation
+        //this moves the whole block into place, and provides a good point to anchor at
+        Vector3 positionDelta = target.transform.position - ghost.transform.position;
+        ghostRoot.position += positionDelta;
+
+        //set this true since we must be in a valid point if we've snapped 
+        //and make sure we're still displaying as a ghost
+        isGhostInValidPosition = true;
+        ghostifyModel(ModelParent, ghostMaterialValid);
+
+        return;
     }
 
     private void SetConnectorVertical(RaycastHit hit)
@@ -428,17 +366,16 @@ public class DefendManager : MonoBehaviour
         //we need some logic here to check for a horizontal target...
         if(Mathf.Abs(targetConnector.transform.up.y) < 0.5f)
         {
-            //Debug.Log("Current pillar is horizontal");
+            Debug.Log("Current pillar is horizontal");
 
             foreach (var gc in ghostBuildGameObject.GetComponentsInChildren<Connector>())
-                if (gc.connectorPosition == ConnectorPosition.right ||
-                    gc.connectorPosition == ConnectorPosition.left)
+                if (gc.connectorPosition == ConnectorPosition.right)
                     ghostConnector = gc;
             
             //we need to do some logic checking here before we snap
             if (targetConnector != null && ghostConnector != null)
             {
-                SnapGhostToConnector(ghostConnector, targetConnector, false, false);
+                SnapGhostToConnector(ghostConnector, targetConnector, false, true);
 
                 ghostifyModel(ModelParent, ghostMaterialValid);
                 isGhostInValidPosition = true;
