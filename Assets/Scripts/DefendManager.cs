@@ -1,7 +1,8 @@
 using TMPro;
 using UnityEngine;
 using System.Collections.Generic;
-
+using System.Linq;
+using UnityEditor.Experimental.GraphView;
 
 public class DefendManager : MonoBehaviour
 {
@@ -266,15 +267,17 @@ public class DefendManager : MonoBehaviour
         ghostifyModel(ModelParent, isGhostInValidPosition ? ghostMaterialValid : ghostMaterialInvalid);
     }
 
-    private void SnapGhostToConnector(Connector ghost, Connector target)
+    private void SnapGhostToConnector(Connector ghost, Connector target, bool horizontalToVertical, bool verticalToHorizontal)
     /*
     Take the ghost connector and target connector and move them onto one another, 
     thus snapping the whole prefab into position 
     */
     {
+        Debug.Log($"SnapGhostToConnector - Ghost: {ghost} and Target: {target}");
+
         if(ghost == null || target == null) return;
 
-        Debug.LogWarning($"TrySnap - Ghost Connector: {ghost} ---> Target Connector {target}");
+        //Debug.LogWarning($"TrySnap - Ghost Connector: {ghost} ---> Target Connector {target}");
         
         //start by getting the ghosts current position at this time
         Transform ghostRoot = ghostBuildGameObject.transform;
@@ -284,6 +287,38 @@ public class DefendManager : MonoBehaviour
         //orientation, but are place in different directions on their parent prefab
         Quaternion rotationDelta = target.transform.rotation * Quaternion.Inverse(ghost.transform.rotation);
         ghostRoot.rotation = rotationDelta * ghostRoot.rotation;
+
+        //we need to handle horizontal beams - works perfectly for vertical but puts 
+        //horizontals into the floor as is - this is a rotation issue
+        if (horizontalToVertical)
+        {
+            if (target.connectorPosition == ConnectorPosition.right) 
+                ghostRoot.Rotate(90f, 0f, 0f, Space.Self);
+
+            else if (target.connectorPosition == ConnectorPosition.left)
+                ghostRoot.Rotate(-90f, 0f, 0f, Space.Self);
+            
+            else if (target.connectorPosition == ConnectorPosition.front)
+                ghostRoot.Rotate(0f, 0f, 90f, Space.Self);
+
+            else if (target.connectorPosition == ConnectorPosition.back)
+                ghostRoot.Rotate(0f, 0f, -90f, Space.Self);  
+        }
+
+        else if (verticalToHorizontal)
+        {
+            if (ghost.connectorPosition == ConnectorPosition.right) 
+                ghostRoot.Rotate(-90f, 0f, -90f, Space.Self);
+
+            else if (ghost.connectorPosition == ConnectorPosition.left)
+                ghostRoot.Rotate(-90f, 0f, 0f, Space.Self);
+            
+            else if (ghost.connectorPosition == ConnectorPosition.front)
+                ghostRoot.Rotate(0f, 0f, 90f, Space.Self);
+
+            else if (ghost.connectorPosition == ConnectorPosition.back)
+                ghostRoot.Rotate(0f, 0f, -90f, Space.Self);  
+        }
 
         //move the ghost connector to the target connector, now with the proper rotation
         //this moves the whole block into place, and provides a good point to anchor at
@@ -313,9 +348,10 @@ public class DefendManager : MonoBehaviour
         //quick check to ensure no bounds errors
         if (nearbyColliders.Length == 0) return;
 
-        //simply take the collider at the closest index 
-        else closestCollider = nearbyColliders[0];
-
+        //simply take the collider at the closest index - order the return and take first
+        else closestCollider = nearbyColliders.OrderBy
+        (col => Vector3.Distance(hit.point, col.transform.position)).First();
+        
         //get the closest collider from our raycast - this is the one on our target
         Connector closestConnector = closestCollider.GetComponent<Connector>();
 
@@ -332,31 +368,67 @@ public class DefendManager : MonoBehaviour
         {
             Debug.Log("Current pillar is horizontal");
 
-            //figure this out...everything else is working and optimal
+            foreach (var gc in ghostBuildGameObject.GetComponentsInChildren<Connector>())
+                if (gc.connectorPosition == ConnectorPosition.right)
+                    ghostConnector = gc;
+            
+            //we need to do some logic checking here before we snap
+            if (targetConnector != null && ghostConnector != null)
+            {
+                SnapGhostToConnector(ghostConnector, targetConnector, false, true);
 
-
+                ghostifyModel(ModelParent, ghostMaterialValid);
+                isGhostInValidPosition = true;
+                return;
+            }
+        
+            else
+            {
+                isGhostInValidPosition = false;
+                return;
+            } 
         }
 
-        //find the appropriate connector from our ghost connectors 
-        foreach (var gc in ghostConnectors)
+        //else we are just doing 2 verticals next to each other - normal logic is fine
+        else
         {
-            //we use our GetOpposite function within Connector.cs to find the appropriate inverse mapping to our connector
-            if (gc.connectorPosition == Connector.GetOpposite(targetConnector.connectorPosition))
+            //find the appropriate connector from our ghost connectors 
+            foreach (var gc in ghostConnectors)
             {
-                //if our ghosts connector is valid - make it our gc 
-                if (gc != null)
+                //we use our GetOpposite function within Connector.cs to find the appropriate inverse mapping to our connector
+                if (gc.connectorPosition == Connector.GetOpposite(targetConnector.connectorPosition))
                 {
-                    ghostConnector = gc;
-                    break;
-                }
+                    //if our ghosts connector is valid - make it our gc 
+                    if (gc != null)
+                    {
+                        ghostConnector = gc;
+                        break;
+                    }
 
-                //else somethings wrong and we need to leave
-                else
-                {
-                    isGhostInValidPosition = false;
-                    return;
+                    //else somethings wrong and we need to leave
+                    else
+                    {
+                        isGhostInValidPosition = false;
+                        return;
+                    }
                 }
             }
+
+            //we need to do some logic checking here before we snap
+            if (targetConnector != null && ghostConnector != null)
+            {
+                SnapGhostToConnector(ghostConnector, targetConnector, false, false);
+
+                ghostifyModel(ModelParent, ghostMaterialValid);
+                isGhostInValidPosition = true;
+                return;
+            }
+        
+            else
+            {
+                isGhostInValidPosition = false;
+                return;
+            } 
         }
     }
 
@@ -366,22 +438,29 @@ public class DefendManager : MonoBehaviour
         #pragma warning disable UNT0028 // Use non-allocating physics APIs
         Collider[] nearbyColliders = Physics.OverlapSphere(hit.point, 5f, connectorLayer);
         #pragma warning restore UNT0028 // Use non-allocating physics APIs
+
         Collider closestCollider;
 
         //quick check to ensure no bounds errors
         if (nearbyColliders.Length == 0) return;
 
-        //simply take the collider at the closest index 
-        else closestCollider = nearbyColliders[0];
+        //order the return and take first
+        else closestCollider = nearbyColliders.OrderBy
+        (col => Vector3.Distance(hit.point, col.transform.position)).First();
 
         //get the closest collider from our raycast - this is the one on our target
         Connector closestConnector = closestCollider.GetComponent<Connector>();
 
+        //Debug.Log($"Closest connector to raycast: {closestConnector}");
+
         if (closestConnector == null) return;
         
+        //only connectors we cannot connect to are top and bottom, return if these are the snapped points
         if (closestConnector.connectorPosition != ConnectorPosition.top && 
             closestConnector.connectorPosition != ConnectorPosition.bottom)
                 {targetConnector = closestConnector;}
+
+        else return;
         
         Connector[] ghostConnectors = ghostBuildGameObject.GetComponentsInChildren<Connector>();
 
@@ -393,35 +472,39 @@ public class DefendManager : MonoBehaviour
 
             else if (Connector.IsValidHorizontalAttachment(gc.connectorPosition, targetConnector.connectorPosition))
             {
+                //Debug.Log($"gc.connector position: {gc.connectorPosition}, target.connector position: {targetConnector.connectorPosition}");
                 ghostConnector = gc;
                 break;
             }
         }
 
-        //at this point we know that our connectors must be set
-        //if they set something must be wrong and we need to kick out
-        if (targetConnector == null || ghostConnector == null)
+        //we need to do some logic checking here before we snap
+        if (targetConnector != null && ghostConnector != null)
+        {
+            SnapGhostToConnector(ghostConnector, targetConnector, true, false);
+
+            ghostifyModel(ModelParent, ghostMaterialValid);
+            isGhostInValidPosition = true;
+            return;
+        }
+        
+        else
         {
             isGhostInValidPosition = false;
             return;
         }
-
-        else return;
     }
 
     private void TrySnapToConnector(SelectedBuildType currentBuildType, RaycastHit hit)
     {
+        targetConnector = null;
+        ghostConnector = null;
+
         switch(currentBuildType)
         {
             //Vertical
             case SelectedBuildType.VerticalPillar:
                 SetConnectorVertical(hit);
-
-                //now the connector is valid, and we can call our snap function 
-                SnapGhostToConnector(ghostConnector, targetConnector);
-
-                ghostifyModel(ModelParent, ghostMaterialValid);
-                isGhostInValidPosition = true;
 
             break;
 
@@ -429,25 +512,12 @@ public class DefendManager : MonoBehaviour
             case SelectedBuildType.HorizontalPillar:
                 SetConnectorHorizontal(hit);
 
-                //now the connector is valid, and we can call our snap function 
-                SnapGhostToConnector(ghostConnector, targetConnector);
-
-                ghostifyModel(ModelParent, ghostMaterialValid);
-                isGhostInValidPosition = true;
-
             break;
 
             //DefenseObject
             case SelectedBuildType.DefenseObject:
-            
                 //defense object uses the same logic as vertical, so we will resuse the function
                 SetConnectorVertical(hit);
-
-                //now the connector is valid, and we can call our snap function 
-                SnapGhostToConnector(ghostConnector, targetConnector);
-
-                ghostifyModel(ModelParent, ghostMaterialValid);
-                isGhostInValidPosition = true;
                 
             break;
         }

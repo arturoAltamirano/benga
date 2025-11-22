@@ -635,7 +635,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7789880529614944785, guid: ac39edca6f665ef80995dbec4e833bb3, type: 3}
       propertyPath: m_Mass
-      value: 50
+      value: 25
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1501,9 +1501,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   lookRoot: {fileID: 2046074500}
-  cam: {fileID: 330585546}
-  mouseSensitivity: 2
   moveSpeed: 20
+  mouseSensitivity: 2
 --- !u!64 &366281090
 MeshCollider:
   m_ObjectHideFlags: 0
