@@ -24,18 +24,23 @@ public class Connector : MonoBehaviour
 
     public static bool IsValidHorizontalAttachment(ConnectorPosition ghostPos, ConnectorPosition targetPos)
     {
-        bool ghostIsTopBottom =
-            ghostPos == ConnectorPosition.top ||
-            ghostPos == ConnectorPosition.bottom;
+        switch (targetPos)
+        {
+            case ConnectorPosition.left:
+            case ConnectorPosition.right:
+                // left/right connectors accept ghost TOP only
+                return ghostPos == ConnectorPosition.top;
 
-        bool targetIsSide =
-            targetPos == ConnectorPosition.left ||
-            targetPos == ConnectorPosition.right ||
-            targetPos == ConnectorPosition.front ||
-            targetPos == ConnectorPosition.back;
+            case ConnectorPosition.front:
+            case ConnectorPosition.back:
+                // front/back connectors accept ghost BOTTOM only
+                return ghostPos == ConnectorPosition.bottom;
 
-        return ghostIsTopBottom && targetIsSide;
-    }
+            default:
+                return false;
+        }
+}
+
 }
 
 public enum ConnectorType
