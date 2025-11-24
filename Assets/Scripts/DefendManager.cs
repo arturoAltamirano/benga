@@ -2,7 +2,6 @@ using TMPro;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.Experimental.GraphView;
 
 public class DefendManager : MonoBehaviour
 {
@@ -351,30 +350,30 @@ public class DefendManager : MonoBehaviour
                     //extra = Quaternion.Euler(-90f, 0f, -90f);
             
                 else if (ghost.connectorPosition == ConnectorPosition.front)
-                    ghostRoot.Rotate(0f, 0f, 90f, Space.Self);
+                    ghostRoot.Rotate(0f, 0f, 0f, Space.Self);
                     //extra = Quaternion.Euler(0f, 0f, 90f);
 
                 else if (ghost.connectorPosition == ConnectorPosition.back)
-                    ghostRoot.Rotate(0f, 0f, -90f, Space.Self);  
+                    ghostRoot.Rotate(0f, 0f, 90f, Space.Self);  
                     //extra = Quaternion.Euler(0f, 0f, -90f);
             }
 
             else if (target.connectorPosition == ConnectorPosition.bottom)
             {
                 if (ghost.connectorPosition == ConnectorPosition.right) 
-                    ghostRoot.Rotate(-90f, 0f, 0f, Space.Self);
+                    ghostRoot.Rotate(0f, -90f, 0f, Space.Self);
                     //extra = Quaternion.Euler(90f, 0f, -90f);
 
                 else if (ghost.connectorPosition == ConnectorPosition.left)
-                    ghostRoot.Rotate(-90f, 0f, -90f, Space.Self);
+                    ghostRoot.Rotate(0f, 0f, -90f, Space.Self);
                     //extra = Quaternion.Euler(-90f, 0f, -90f);
             
                 else if (ghost.connectorPosition == ConnectorPosition.front)
-                    ghostRoot.Rotate(0f, 0f, 90f, Space.Self);
+                    ghostRoot.Rotate(0f, 0f, 0f, Space.Self);
                     //extra = Quaternion.Euler(0f, 0f, 90f);
 
                 else if (ghost.connectorPosition == ConnectorPosition.back)
-                    ghostRoot.Rotate(0f, 0f, -90f, Space.Self);  
+                    ghostRoot.Rotate(0f, -90f, -90f, Space.Self);  
                     //extra = Quaternion.Euler(0f, 0f, -90f);
             }
             
@@ -432,8 +431,8 @@ public class DefendManager : MonoBehaviour
             //Debug.Log("Current pillar is horizontal");
 
             foreach (var gc in ghostBuildGameObject.GetComponentsInChildren<Connector>())
-                if (gc.connectorPosition != ConnectorPosition.top ||
-                    gc.connectorPosition != ConnectorPosition.bottom)
+                if (gc.connectorPosition == ConnectorPosition.front ||
+                    gc.connectorPosition == ConnectorPosition.back)
                     ghostConnector = gc;
             
             //we need to do some logic checking here before we snap
@@ -593,6 +592,9 @@ public class DefendManager : MonoBehaviour
         Rigidbody targetRb = targetConnector.GetComponentInParent<Rigidbody>();
         Rigidbody placedRb = placedObj.GetComponent<Rigidbody>();
 
+        //targetRb.linearVelocity = Vector3.zero;
+        //placedRb.linearVelocity = Vector3.zero;
+
         if (targetRb != null && placedRb != null && targetRb != placedRb)
         {
             //Debug.Log($"Attached to Connector. Target Rb: {targetRb} | Placed Rb {placedRb}");
@@ -655,6 +657,9 @@ public class DefendManager : MonoBehaviour
             //instantiate the current build according to the selected build and get the rigidbody
             GameObject newBuild = Instantiate(currentBuild, placePos, placeRot);
             Rigidbody rb = newBuild.GetComponent<Rigidbody>();
+
+            //trying to stop launching
+            Physics.SyncTransforms();
 
             //save this for clean up when round is over
             placedObjects.Add(newBuild);

@@ -6,8 +6,6 @@ public class Connector : MonoBehaviour
 
     public ConnectorType connectorType = ConnectorType.Vertical;
 
-    [HideInInspector] public bool isOccupied = false;
-
     public static ConnectorPosition GetOpposite(ConnectorPosition pos)
     {
         return pos switch

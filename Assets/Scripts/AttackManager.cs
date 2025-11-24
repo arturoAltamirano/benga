@@ -215,7 +215,7 @@ public class AttackManager : MonoBehaviour
     private void LaunchSlug()
     {
         //more mass so need more launch force
-        launchForce = 500000f;
+        launchForce = 250000f;
 
         GameObject slug = SpawnBullet(Slug);
         Rigidbody rb = slug.GetComponent<Rigidbody>();
