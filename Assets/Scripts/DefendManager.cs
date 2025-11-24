@@ -272,7 +272,7 @@ public class DefendManager : MonoBehaviour
     thus snapping the whole prefab into position 
     */
     {
-        Debug.Log($"SnapGhostToConnector - Ghost: {ghost} and Target: {target}");
+        //Debug.Log($"SnapGhostToConnector - Ghost: {ghost} and Target: {target}");
 
         if(ghost == null || target == null) return;
 
@@ -314,7 +314,7 @@ public class DefendManager : MonoBehaviour
                 //extra = Quaternion.Euler(-90f, 0f, 0f);
             
             else if (target.connectorPosition == ConnectorPosition.front)
-                ghostRoot.Rotate(0f, 0f, -90f, Space.Self);
+                ghostRoot.Rotate(-90f, 0f, -90f, Space.Self);
                 //extra = Quaternion.Euler(0f, 0f, 90f);
 
             else if (target.connectorPosition == ConnectorPosition.back)
@@ -354,7 +354,7 @@ public class DefendManager : MonoBehaviour
                     //extra = Quaternion.Euler(0f, 0f, 90f);
 
                 else if (ghost.connectorPosition == ConnectorPosition.back)
-                    ghostRoot.Rotate(0f, 0f, 90f, Space.Self);  
+                    ghostRoot.Rotate(0f, -90f, -90f, Space.Self); 
                     //extra = Quaternion.Euler(0f, 0f, -90f);
             }
 
@@ -612,37 +612,47 @@ public class DefendManager : MonoBehaviour
     advanced structures or minimalist syntax.
     */
     {
-        //depending on type of block - we may want specific checks before
-        switch (currentBuildType)
+        try
         {
-            case SelectedBuildType.VerticalPillar:
-                AttachJointToNearbyConnector(newBuild, breakForce, breakTorque);
+            //depending on type of block - we may want specific checks before
+            switch (currentBuildType)
+            {
+                case SelectedBuildType.VerticalPillar:
+                    AttachJointToNearbyConnector(newBuild, breakForce, breakTorque);
 
-                DestroyGhost();
-
-            break;
-
-            case SelectedBuildType.HorizontalPillar:
-                AttachJointToNearbyConnector(newBuild, breakForce, breakTorque);
-
-                DestroyGhost();
-
-            break;
-
-            case SelectedBuildType.DefenseObject:
-                if (defenseObjectPlaced)
-                {
                     DestroyGhost();
-                    Destroy(newBuild);
-                    return;
-                }
+
+                break;
+
+                case SelectedBuildType.HorizontalPillar:
+                    AttachJointToNearbyConnector(newBuild, breakForce, breakTorque);
+
+                    DestroyGhost();
+
+                break;
+
+                case SelectedBuildType.DefenseObject:
+                    if (defenseObjectPlaced)
+                    {
+                        DestroyGhost();
+                        Destroy(newBuild);
+                        return;
+                    }
 
                 else defenseObjectPlaced = true;
 
                 AttachJointToNearbyConnector(newBuild, 1000f, 1000f);
 
-            break;
+                break;
+            }
         }
+
+        catch
+        {
+            Destroy(newBuild);
+            Debug.Log("Bad build!");
+        }
+        
     }
 
     private void PlaceBuild()

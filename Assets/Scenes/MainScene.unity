@@ -984,7 +984,7 @@ Transform:
   m_GameObject: {fileID: 324961377}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -395.38013, y: -8.676497, z: -24.463116}
+  m_LocalPosition: {x: -395.38013, y: -8.48, z: -24.463116}
   m_LocalScale: {x: 10.036855, y: 0.014902733, z: 7.642428}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3825,6 +3825,7 @@ MonoBehaviour:
   Slug: {fileID: 1518941979}
   currentBulletType: 0
   MaxBalls: 20
+  launchForce: 15000
   RoundManager: {fileID: 1956519995}
   counterText: {fileID: 601197443}
   selectedObjectText: {fileID: 136565971}
@@ -8131,7 +8132,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8728675837061921639, guid: 14226c75396ca29fda006a02690dadef, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 5.2
+      value: 5.18
       objectReference: {fileID: 0}
     - target: {fileID: 8728675837061921639, guid: 14226c75396ca29fda006a02690dadef, type: 3}
       propertyPath: m_LocalPosition.y
@@ -8166,11 +8167,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 992098955635447566, guid: 5595e80b7e2f51d63a2370a489d228c3, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 7.063
+      value: 7.1
       objectReference: {fileID: 0}
     - target: {fileID: 992098955635447566, guid: 5595e80b7e2f51d63a2370a489d228c3, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2961941163653056031, guid: 5595e80b7e2f51d63a2370a489d228c3, type: 3}
       propertyPath: m_Name
@@ -8198,7 +8199,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7148043656591768410, guid: 5595e80b7e2f51d63a2370a489d228c3, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -11.699
+      value: -11.76
+      objectReference: {fileID: 0}
+    - target: {fileID: 7148043656591768410, guid: 5595e80b7e2f51d63a2370a489d228c3, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 7215300218361989488, guid: 5595e80b7e2f51d63a2370a489d228c3, type: 3}
       propertyPath: m_LocalScale.x

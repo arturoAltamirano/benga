@@ -13,7 +13,7 @@ public class AttackManager : MonoBehaviour
 
     [Header("Bullet Attributes and Misc. Settings")]
     [SerializeField] public int MaxBalls = 10;
-    [HideInInspector] private float launchForce = 10000f; 
+    [SerializeField] private float launchForce = 10000f; 
     [HideInInspector] private int currentAmmo = 10;
     [HideInInspector] float ammoExhaustedTimer = 5f;
 
@@ -63,6 +63,7 @@ public class AttackManager : MonoBehaviour
             if (ammoExhaustedTimer <= 0)
             {
                 //Debug.Log("Switching to defender - player out of bullets");
+                RoundManager.defenderScore += 1;
                 RoundManager.SwitchPhase(RoundManager.Phase.Defender);
             }
         }
@@ -184,18 +185,18 @@ public class AttackManager : MonoBehaviour
 
     private void LaunchFastball()
     {
-        launchForce = 20000f;
+        float force = launchForce;
 
         GameObject fastBall = SpawnBullet(FastBall);
         Rigidbody rb = fastBall.GetComponent<Rigidbody>();
 
-        rb.AddForce(MainCamera.transform.forward * launchForce);
+        rb.AddForce(MainCamera.transform.forward * force);
     }
 
     private void LaunchScattershot()
     {
         //these are small and with low mass - less launch force
-        launchForce = 5000f;
+        float force = launchForce / 5;
 
         //we want 5 pellets
         for (int i = 0; i < 5; i++)
@@ -208,18 +209,18 @@ public class AttackManager : MonoBehaviour
                          Random.insideUnitSphere * 0.2f;
 
             //spread is just the camera + the random unit sphere
-            rb.AddForce(spread.normalized * launchForce);
+            rb.AddForce(spread.normalized * force);
         }
     }
 
     private void LaunchSlug()
     {
         //more mass so need more launch force
-        launchForce = 250000f;
+        float force = launchForce * 5;
 
         GameObject slug = SpawnBullet(Slug);
         Rigidbody rb = slug.GetComponent<Rigidbody>();
 
-        rb.AddForce(MainCamera.transform.forward * launchForce);
+        rb.AddForce(MainCamera.transform.forward * force);
     }
 }
