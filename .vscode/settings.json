@@ -66,5 +66,5 @@
     "explorer.fileNesting.patterns": {
         "*.sln": "*.csproj"
     },
-    "dotnet.defaultSolution": "arturoAltamirano_Benga.sln"
+    "dotnet.defaultSolution": "benga.sln"
 }

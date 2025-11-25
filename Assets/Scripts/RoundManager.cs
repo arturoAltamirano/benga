@@ -48,7 +48,7 @@ public class RoundManager : MonoBehaviour
             //Debug.Log("Switch to defense.");
 
             //Debug.Log($"Start Phase: {currentPhase} to {desiredPhase}");
-            navigationAid.text = $"1 - Vertical Pillar \n2 - Horizontal Pillar \n3 - Defense Object \nSpace - Finished Building";
+            navigationAid.text = $"1 - Vertical Pillar \n2 - Horizontal Pillar \n3 - Defense Object \nSpace - Finished Building \nRight Click - Place Object";
 
             //set the defenders designated timer
             scoreboardTimer = defenderPhaseDuration;
@@ -79,7 +79,7 @@ public class RoundManager : MonoBehaviour
             //Debug.Log("Switch to offense.");
 
             //Debug.Log($"Start Phase: {currentPhase} to {desiredPhase}");
-            navigationAid.text = $"1 - Fastball \n2 - Scattershot \n3 - Curveball";
+            navigationAid.text = $"1 - Fastball \n2 - Scattershot \n3 - Curveball \nRight Click - Shoot Projectile";
 
             //set the attackers designated timer
             scoreboardTimer = attackerPhaseDuration;
