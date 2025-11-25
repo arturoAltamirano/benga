@@ -24,5 +24,3 @@ public class killZone : MonoBehaviour
         }
     }
 }
-
-

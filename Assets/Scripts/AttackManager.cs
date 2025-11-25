@@ -15,7 +15,7 @@ public class AttackManager : MonoBehaviour
     [SerializeField] public int MaxBalls = 10;
     [SerializeField] private float launchForce = 10000f; 
     [HideInInspector] private int currentAmmo = 10;
-    [HideInInspector] float ammoExhaustedTimer = 5f;
+    [HideInInspector] float ammoExhaustedTimer = 15f;
 
     [Header("UI Elements and Scripts")]
     [SerializeField] private RoundManager RoundManager;  
