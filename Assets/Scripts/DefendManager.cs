@@ -277,7 +277,7 @@ public class DefendManager : MonoBehaviour
     thus snapping the whole prefab into position 
     */
     {
-        //Debug.Log($"SnapGhostToConnector - Ghost: {ghost} and Target: {target}");
+        Debug.Log($"SnapGhostToConnector - Ghost: {ghost} and Target: {target}");
 
         if(ghost == null || target == null) return;
 
@@ -359,7 +359,7 @@ public class DefendManager : MonoBehaviour
                     //extra = Quaternion.Euler(0f, 0f, 90f);
 
                 else if (ghost.connectorPosition == ConnectorPosition.back)
-                    ghostRoot.Rotate(0f, -90f, -90f, Space.Self); 
+                    ghostRoot.Rotate(-90f, -90f, -90f, Space.Self); 
                     //extra = Quaternion.Euler(0f, 0f, -90f);
             }
 
@@ -436,8 +436,8 @@ public class DefendManager : MonoBehaviour
             //Debug.Log("Current pillar is horizontal");
 
             foreach (var gc in ghostBuildGameObject.GetComponentsInChildren<Connector>())
-                if (gc.connectorPosition == ConnectorPosition.front ||
-                    gc.connectorPosition == ConnectorPosition.back)
+                if (gc.connectorPosition == ConnectorPosition.back ||
+                    gc.connectorPosition == ConnectorPosition.front)
                     ghostConnector = gc;
             
             //we need to do some logic checking here before we snap
