@@ -231,13 +231,18 @@ public class DefendManager : MonoBehaviour
         //project our ray from viewport
         Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
 
-        //if our ray does not hit a valid surface, set the material to invalid (red)
-        if (!Physics.Raycast(ray, out RaycastHit hit))
+        //connectors are on layer 'BuildingSphere'
+        int buildingSphereMask = LayerMask.GetMask("BuildingSphere");
+
+        //if our ray does not hit a valid surface (a connector), set the material to invalid (red)
+        if (!Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, buildingSphereMask))
         {
             isGhostInValidPosition = false;
             ghostifyModel(ModelParent, ghostMaterialInvalid);
             return;
         }
+
+        else isGhostInValidPosition = true;
         
         //to prevent the object from morphing into other objects at it's center, we need to 
         //apply an offset according to the bounds to visually force the element out of other elements
