@@ -284,6 +284,7 @@ public class DefendManager : MonoBehaviour
         //start by getting the ghosts current position at this time
         Transform ghostRoot = ghostBuildGameObject.transform;
         Quaternion rotationDelta = target.transform.rotation * Quaternion.Inverse(ghost.transform.rotation);
+        Vector3 positionDelta;
 
         if (horizontalToVertical == false && verticalToHorizontal == false)
         {
@@ -296,7 +297,7 @@ public class DefendManager : MonoBehaviour
 
             //move the ghost connector to the target connector, now with the proper rotation
             //this moves the whole block into place, and provides a good point to anchor at
-            Vector3 positionDelta = target.transform.position - ghost.transform.position;
+            positionDelta = target.transform.position - ghost.transform.position;
             ghostRoot.position += positionDelta;
 
             //set this true since we must be in a valid point if we've snapped 
@@ -319,7 +320,7 @@ public class DefendManager : MonoBehaviour
                 //extra = Quaternion.Euler(-90f, 0f, 0f);
             
             else if (target.connectorPosition == ConnectorPosition.front)
-                ghostRoot.Rotate(-90f, 0f, -90f, Space.Self);
+                ghostRoot.Rotate(90f, 0f, -90f, Space.Self);
                 //extra = Quaternion.Euler(0f, 0f, 90f);
 
             else if (target.connectorPosition == ConnectorPosition.back)
@@ -331,7 +332,7 @@ public class DefendManager : MonoBehaviour
 
             //move the ghost connector to the target connector, now with the proper rotation
             //this moves the whole block into place, and provides a good point to anchor at
-            Vector3 positionDelta = target.transform.position - ghost.transform.position;
+            positionDelta = target.transform.position - ghost.transform.position;
             ghostRoot.position += positionDelta;
 
             //set this true since we must be in a valid point if we've snapped 
@@ -346,21 +347,16 @@ public class DefendManager : MonoBehaviour
         {
             if (target.connectorPosition == ConnectorPosition.top)
             {
-                if (ghost.connectorPosition == ConnectorPosition.right) 
-                    ghostRoot.Rotate(-90f, 0f, -90f, Space.Self);
-                    //extra = Quaternion.Euler(90f, 0f, -90f);
 
-                else if (ghost.connectorPosition == ConnectorPosition.left)
-                    ghostRoot.Rotate(-90f, 0f, -90f, Space.Self);
-                    //extra = Quaternion.Euler(-90f, 0f, -90f);
-            
-                else if (ghost.connectorPosition == ConnectorPosition.front)
-                    ghostRoot.Rotate(0f, 0f, 0f, Space.Self);
-                    //extra = Quaternion.Euler(0f, 0f, 90f);
+                positionDelta = target.transform.position - ghost.transform.position;
+                ghostRoot.position += positionDelta;
 
-                else if (ghost.connectorPosition == ConnectorPosition.back)
-                    ghostRoot.Rotate(-90f, -90f, -90f, Space.Self); 
-                    //extra = Quaternion.Euler(0f, 0f, -90f);
+                //set this true since we must be in a valid point if we've snapped 
+                //and make sure we're still displaying as a ghost
+                isGhostInValidPosition = true;
+                ghostifyModel(ModelParent, ghostMaterialValid);
+
+                return;
             }
 
             else if (target.connectorPosition == ConnectorPosition.bottom)
@@ -374,29 +370,28 @@ public class DefendManager : MonoBehaviour
                     //extra = Quaternion.Euler(-90f, 0f, -90f);
             
                 else if (ghost.connectorPosition == ConnectorPosition.front)
-                    ghostRoot.Rotate(0f, 0f, 0f, Space.Self);
+                    ghostRoot.Rotate(0f, -90f, -90f, Space.Self);
                     //extra = Quaternion.Euler(0f, 0f, 90f);
 
                 else if (ghost.connectorPosition == ConnectorPosition.back)
                     ghostRoot.Rotate(0f, -90f, -90f, Space.Self);  
                     //extra = Quaternion.Euler(0f, 0f, -90f);
+
+                ghostRoot.rotation = rotationDelta * ghostRoot.rotation;
+                //ghostRoot.rotation = rotationDelta * extra;
+
+                //move the ghost connector to the target connector, now with the proper rotation
+                //this moves the whole block into place, and provides a good point to anchor at
+                positionDelta = target.transform.position - ghost.transform.position;
+                ghostRoot.position += positionDelta;
+
+                //set this true since we must be in a valid point if we've snapped 
+                //and make sure we're still displaying as a ghost
+                isGhostInValidPosition = true;
+                ghostifyModel(ModelParent, ghostMaterialValid);
+
+                return;
             }
-            
-            ghostRoot.rotation = rotationDelta * ghostRoot.rotation;
-
-            //ghostRoot.rotation = rotationDelta * extra;
-
-            //move the ghost connector to the target connector, now with the proper rotation
-            //this moves the whole block into place, and provides a good point to anchor at
-            Vector3 positionDelta = target.transform.position - ghost.transform.position;
-            ghostRoot.position += positionDelta;
-
-            //set this true since we must be in a valid point if we've snapped 
-            //and make sure we're still displaying as a ghost
-            isGhostInValidPosition = true;
-            ghostifyModel(ModelParent, ghostMaterialValid);
-
-            return;
         }
     }
 
@@ -436,7 +431,7 @@ public class DefendManager : MonoBehaviour
             //Debug.Log("Current pillar is horizontal");
 
             foreach (var gc in ghostBuildGameObject.GetComponentsInChildren<Connector>())
-                if (gc.connectorPosition == ConnectorPosition.back ||
+                if (//gc.connectorPosition == ConnectorPosition.back ||
                     gc.connectorPosition == ConnectorPosition.front)
                     ghostConnector = gc;
             
