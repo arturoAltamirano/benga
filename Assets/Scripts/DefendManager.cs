@@ -2,6 +2,7 @@ using TMPro;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 
 public class DefendManager : MonoBehaviour
 {
@@ -277,7 +278,7 @@ public class DefendManager : MonoBehaviour
     thus snapping the whole prefab into position 
     */
     {
-        Debug.Log($"SnapGhostToConnector - Ghost: {ghost} and Target: {target}");
+        //Debug.Log($"SnapGhostToConnector - Ghost: {ghost} and Target: {target}");
 
         if(ghost == null || target == null) return;
 
@@ -286,6 +287,7 @@ public class DefendManager : MonoBehaviour
         Quaternion rotationDelta = target.transform.rotation * Quaternion.Inverse(ghost.transform.rotation);
         Vector3 positionDelta;
 
+        //vertical pillar placement - no need to rotate artificially
         if (horizontalToVertical == false && verticalToHorizontal == false)
         {
             //we first want to align these connectors which will have inherently opposite rotations
@@ -304,9 +306,10 @@ public class DefendManager : MonoBehaviour
             //and make sure we're still displaying as a ghost
             isGhostInValidPosition = true;
             ghostifyModel(ModelParent, ghostMaterialValid);
+
+            return;
         }
         
-
         //we need to handle horizontal beams - works perfectly for vertical but puts 
         //horizontals into the floor as is - this is a rotation issue
         else if (horizontalToVertical)
@@ -324,42 +327,15 @@ public class DefendManager : MonoBehaviour
                 //extra = Quaternion.Euler(0f, 0f, 90f);
 
             else if (target.connectorPosition == ConnectorPosition.back)
-                ghostRoot.Rotate(0f, 0f, 90f, Space.Self);  
+                ghostRoot.Rotate(90f, 0f, 90f, Space.Self);  
                 //extra = Quaternion.Euler(0f, 0f, -90f);
 
             ghostRoot.rotation = rotationDelta * ghostRoot.rotation;
-            //ghostRoot.rotation = rotationDelta * extra;
-
-            //move the ghost connector to the target connector, now with the proper rotation
-            //this moves the whole block into place, and provides a good point to anchor at
-            positionDelta = target.transform.position - ghost.transform.position;
-            ghostRoot.position += positionDelta;
-
-            //set this true since we must be in a valid point if we've snapped 
-            //and make sure we're still displaying as a ghost
-            isGhostInValidPosition = true;
-            ghostifyModel(ModelParent, ghostMaterialValid);
-
-            return;
         }
 
         else if (verticalToHorizontal)
         {
-            if (target.connectorPosition == ConnectorPosition.top)
-            {
-
-                positionDelta = target.transform.position - ghost.transform.position;
-                ghostRoot.position += positionDelta;
-
-                //set this true since we must be in a valid point if we've snapped 
-                //and make sure we're still displaying as a ghost
-                isGhostInValidPosition = true;
-                ghostifyModel(ModelParent, ghostMaterialValid);
-
-                return;
-            }
-
-            else if (target.connectorPosition == ConnectorPosition.bottom)
+            if (target.connectorPosition == ConnectorPosition.bottom)
             {
                 if (ghost.connectorPosition == ConnectorPosition.right) 
                     ghostRoot.Rotate(0f, -90f, 0f, Space.Self);
@@ -377,22 +353,21 @@ public class DefendManager : MonoBehaviour
                     ghostRoot.Rotate(0f, -90f, -90f, Space.Self);  
                     //extra = Quaternion.Euler(0f, 0f, -90f);
 
+                //add our rotation before we return
                 ghostRoot.rotation = rotationDelta * ghostRoot.rotation;
-                //ghostRoot.rotation = rotationDelta * extra;
-
-                //move the ghost connector to the target connector, now with the proper rotation
-                //this moves the whole block into place, and provides a good point to anchor at
-                positionDelta = target.transform.position - ghost.transform.position;
-                ghostRoot.position += positionDelta;
-
-                //set this true since we must be in a valid point if we've snapped 
-                //and make sure we're still displaying as a ghost
-                isGhostInValidPosition = true;
-                ghostifyModel(ModelParent, ghostMaterialValid);
-
-                return;
             }
         }
+
+        //finalize the rotation/placement for all non-vertical-to-vertical placements
+        positionDelta = target.transform.position - ghost.transform.position;
+        ghostRoot.position += positionDelta;
+
+        //set this true since we must be in a valid point if we've snapped 
+        //and make sure we're still displaying as a ghost
+        isGhostInValidPosition = true;
+        ghostifyModel(ModelParent, ghostMaterialValid);
+
+        return;
     }
 
     private void SetConnectorVertical(RaycastHit hit)
@@ -430,10 +405,19 @@ public class DefendManager : MonoBehaviour
         {
             //Debug.Log("Current pillar is horizontal");
 
+            //rotational issue trying to get these perfect
             foreach (var gc in ghostBuildGameObject.GetComponentsInChildren<Connector>())
-                if (//gc.connectorPosition == ConnectorPosition.back ||
-                    gc.connectorPosition == ConnectorPosition.front)
+                if (targetConnector.connectorPosition == ConnectorPosition.top)
+                {
+                    if (gc.connectorPosition == ConnectorPosition.front)
                     ghostConnector = gc;
+                }
+
+                else if (targetConnector.connectorPosition == ConnectorPosition.bottom)
+                {
+                    if (gc.connectorPosition == ConnectorPosition.back)
+                    ghostConnector = gc;
+                }
             
             //we need to do some logic checking here before we snap
             if (targetConnector != null && ghostConnector != null)
@@ -600,8 +584,11 @@ public class DefendManager : MonoBehaviour
             //Debug.Log($"Attached to Connector. Target Rb: {targetRb} | Placed Rb {placedRb}");
             FixedJoint joint = placedObj.AddComponent<FixedJoint>();
             joint.connectedBody = targetRb;
-            joint.breakForce = force;
-            joint.breakTorque = torque;
+
+            if (targetConnector.connectorPosition == ConnectorPosition.top)
+                {joint.breakForce = force * 2; joint.breakTorque = torque * 2;}
+
+            else {joint.breakForce = force; joint.breakTorque = torque;}
         }
     }
 
