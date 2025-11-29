@@ -3,6 +3,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
+using UnityEditor.ShaderGraph.Internal;
 
 public class DefendManager : MonoBehaviour
 {
@@ -327,7 +328,7 @@ public class DefendManager : MonoBehaviour
                 //extra = Quaternion.Euler(0f, 0f, 90f);
 
             else if (target.connectorPosition == ConnectorPosition.back)
-                ghostRoot.Rotate(90f, 0f, 90f, Space.Self);  
+                ghostRoot.Rotate(-90f, 0f, 90f, Space.Self);  
                 //extra = Quaternion.Euler(0f, 0f, -90f);
 
             ghostRoot.rotation = rotationDelta * ghostRoot.rotation;
@@ -405,7 +406,7 @@ public class DefendManager : MonoBehaviour
         {
             //Debug.Log("Current pillar is horizontal");
 
-            //rotational issue trying to get these perfect
+            //rotational issue trying to get these perfect for horizontal to vertical
             foreach (var gc in ghostBuildGameObject.GetComponentsInChildren<Connector>())
                 if (targetConnector.connectorPosition == ConnectorPosition.top)
                 {
@@ -569,6 +570,45 @@ public class DefendManager : MonoBehaviour
         }
     }
 
+    private Rigidbody FindGroundConnector(GameObject placedObj, float force, float torque)
+    {
+        RaycastHit hit;
+
+        if (Physics.Raycast(placedObj.transform.position, Vector3.down, out hit, 100f, ~0))
+        {
+            //Debug.Log("Raycast down caught.");
+            Rigidbody groundRb = hit.collider.GetComponent<Rigidbody>();
+
+            if (groundRb != null){return groundRb;}
+        }
+
+        else if (Physics.Raycast(placedObj.transform.position, Vector3.up, out hit, 100f, ~0))
+        {
+            //Debug.Log("Raycast up caught.");
+            Rigidbody groundRb = hit.collider.GetComponent<Rigidbody>();
+
+            if (groundRb != null){return groundRb;}
+        }
+
+        else if (Physics.Raycast(placedObj.transform.position, Vector3.left, out hit, 100f, ~0))
+        {
+            //Debug.Log("Raycast left caught.");
+            Rigidbody groundRb = hit.collider.GetComponent<Rigidbody>();
+
+            if (groundRb != null){return groundRb;}
+        }
+
+        else if (Physics.Raycast(placedObj.transform.position, Vector3.right, out hit, 100f, ~0))
+        {
+            //Debug.Log("Raycast right caught.");
+            Rigidbody groundRb = hit.collider.GetComponent<Rigidbody>();
+
+            if (groundRb != null){return groundRb;}
+        }
+        
+        return null;
+    }
+
     private void AttachJointToNearbyConnector(GameObject placedObj, float force, float torque)
     {
         //we set this continously within the prefab to raycast function above
@@ -585,9 +625,35 @@ public class DefendManager : MonoBehaviour
             FixedJoint joint = placedObj.AddComponent<FixedJoint>();
             joint.connectedBody = targetRb;
 
-            if (targetConnector.connectorPosition == ConnectorPosition.top)
-                {joint.breakForce = force * 2; joint.breakTorque = torque * 2;}
+            //if target is top or bottom
+            if (targetConnector.connectorPosition == ConnectorPosition.top || 
+                targetConnector.connectorPosition == ConnectorPosition.bottom)
+            {
 
+                //if our target is a horizontal - we are placing vertical to horizontal
+                if(Mathf.Abs(targetConnector.transform.up.y) < 0.5f)
+                {
+                    //Debug.Log("Vertical to horizontal attach joint function.");
+
+                    Rigidbody groundRb = FindGroundConnector(placedObj, force, torque);
+
+                    if (groundRb != null)
+                    {
+                        FixedJoint groundJoint = placedObj.AddComponent<FixedJoint>();
+
+                        groundJoint.connectedBody = groundRb;
+                        groundJoint.breakForce = force * 3f;
+                        groundJoint.breakTorque = torque * 3f;
+
+                        Debug.Log("Placed vertical pillar jointed to ground as well.");
+                    }
+                }
+
+                //must be a floor connector
+                else {joint.breakForce = force * 2; joint.breakTorque = torque * 2;}
+            }
+
+            //side by side verticals and verticals to horizontals        
             else {joint.breakForce = force; joint.breakTorque = torque;}
         }
     }
@@ -656,7 +722,7 @@ public class DefendManager : MonoBehaviour
             Rigidbody rb = newBuild.GetComponent<Rigidbody>();
 
             //trying to stop launching
-            Physics.SyncTransforms();
+            //Physics.SyncTransforms();
 
             //save this for clean up when round is over
             placedObjects.Add(newBuild);

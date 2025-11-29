@@ -24,7 +24,7 @@ public class killZone : MonoBehaviour
 
         else if (other.CompareTag("Projectile"))
         {
-            Debug.Log($"Object entered kill zone: {other.name}");
+            //Debug.Log($"Object entered kill zone: {other.name}");
 
             Destroy(other.gameObject);
         }
