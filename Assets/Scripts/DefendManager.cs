@@ -281,7 +281,7 @@ public class DefendManager : MonoBehaviour
     {
         //Debug.Log($"SnapGhostToConnector - Ghost: {ghost} and Target: {target}");
 
-        if(ghost == null || target == null) return;
+        if(ghost == null || target == null || target.IsOccupied) return;
 
         //start by getting the ghosts current position at this time
         Transform ghostRoot = ghostBuildGameObject.transform;
@@ -727,16 +727,19 @@ public class DefendManager : MonoBehaviour
             //save this for clean up when round is over
             placedObjects.Add(newBuild);
 
-            //Connector[] conns = newBuild.GetComponentsInChildren<Connector>();
-            //foreach (var c in conns)
-                //c.isOccupied = true;
-
             //an unnecessary safety check to make sure we set this as a physical object 
             //since ghosts are kinematic, it is a good idea to sanity check this here 
             if (rb != null)
             {
                 //call our dispatcher to attach our newly minted object to a connector
                 AttachToConnector(currentBuildType, newBuild);
+
+                //occupy the target connector to prevent replacing from raycast
+                if (targetConnector != null) {targetConnector.IsOccupied = true;}
+
+                //set newly created objects connector to occupied at the site of ghost attach
+                foreach (Connector c in newBuild.GetComponentsInChildren<Connector>())
+                    if (c == ghostConnector) {c.IsOccupied = true;}
 
                 //make sure these are set properly so the attacker can actually destroy the structure
                 rb.isKinematic = false;

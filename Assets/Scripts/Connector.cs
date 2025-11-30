@@ -4,6 +4,8 @@ public class Connector : MonoBehaviour
 {
     public ConnectorPosition connectorPosition;
 
+    [HideInInspector] public bool IsOccupied = false;
+
     public ConnectorType connectorType = ConnectorType.Vertical;
 
     public static ConnectorPosition GetOpposite(ConnectorPosition pos)
