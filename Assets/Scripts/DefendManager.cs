@@ -95,6 +95,7 @@ public class DefendManager : MonoBehaviour
                 //if user is clicking to place the object, and it is in valid position
                 if (Input.GetMouseButtonDown(0) && isGhostInValidPosition)
                 {
+                    //place the object - this will instantiate, and destroy the old ghost
                     PlaceBuild();
 
                     //we still need to create a new ghost, after destroying the previous following placement
