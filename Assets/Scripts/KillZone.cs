@@ -13,6 +13,7 @@ public class killZone : MonoBehaviour
     enters it's collider (which covers the entire floor)
     */
     {
+        /*
         if (other.CompareTag("DefenseObject"))
         {
 
@@ -21,8 +22,9 @@ public class killZone : MonoBehaviour
             //hypothetically...a defense object could hit during defender building
             RoundManager.SwitchPhase(RoundManager.Phase.Defender);
         }
+        */
 
-        else if (other.CompareTag("Projectile"))
+        if (other.CompareTag("Projectile"))
         {
             //Debug.Log($"Object entered kill zone: {other.name}");
 

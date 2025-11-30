@@ -8,6 +8,7 @@ TagManager:
   - DefenseObject
   - Connector
   - Projectile
+  - KillZone
   layers:
   - Default
   - TransparentFX

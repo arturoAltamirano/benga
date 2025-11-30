@@ -351,7 +351,7 @@ public class DefendManager : MonoBehaviour
                     //extra = Quaternion.Euler(0f, 0f, 90f);
 
                 else if (ghost.connectorPosition == ConnectorPosition.back)
-                    ghostRoot.Rotate(0f, -90f, -90f, Space.Self);  
+                    ghostRoot.Rotate(0f, 90f, 90f, Space.Self);  
                     //extra = Quaternion.Euler(0f, 0f, -90f);
 
                 //add our rotation before we return
@@ -642,15 +642,15 @@ public class DefendManager : MonoBehaviour
                         FixedJoint groundJoint = placedObj.AddComponent<FixedJoint>();
 
                         groundJoint.connectedBody = groundRb;
-                        groundJoint.breakForce = force * 3f;
-                        groundJoint.breakTorque = torque * 3f;
+                        groundJoint.breakForce = force * 2f;
+                        groundJoint.breakTorque = torque * 2f;
 
-                        Debug.Log("Placed vertical pillar jointed to ground as well.");
+                        //Debug.Log("Placed vertical pillar jointed to ground as well.");
                     }
                 }
 
                 //must be a floor connector
-                else {joint.breakForce = force * 2; joint.breakTorque = torque * 2;}
+                else {joint.breakForce = force * 2f; joint.breakTorque = torque * 2f;}
             }
 
             //side by side verticals and verticals to horizontals        
