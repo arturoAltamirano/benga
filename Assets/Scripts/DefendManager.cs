@@ -2,8 +2,6 @@ using TMPro;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
-using UnityEditor.ShaderGraph.Internal;
 
 public class DefendManager : MonoBehaviour
 {
@@ -45,21 +43,21 @@ public class DefendManager : MonoBehaviour
 
     [Header("Build Limits & UI")]
     [SerializeField] private TextMeshProUGUI selectedObjectText;
-    [HideInInspector] public List<GameObject> placedObjects = new List<GameObject>();
+    [HideInInspector] public List<GameObject> placedObjects = new();
     [SerializeField] private TextMeshProUGUI navigationAid;
 
-    private bool isEnabled = true;
+    private bool IsEnabled = true;
 
-    public bool isEnabledAccess
+    public bool IsEnabledAccess
     {
-        get => isEnabled;
-        set => isEnabled = value;
+        get => IsEnabled;
+        set => IsEnabled = value;
     }
 
     private void Update()
     {
         //if we are blocked by round manager
-        if (!isEnabled) return;
+        if (!IsEnabled) return;
 
         //if user is pressing space to switch to offense
         else if (Input.GetKeyDown(KeyCode.Space))
@@ -90,7 +88,7 @@ public class DefendManager : MonoBehaviour
             if (ghostBuildGameObject != null && ModelParent != null)
             {
                 //continously update the position of the ghost to where user is raycasting
-                moveGhostPrefabToRaycast();
+                MoveGhostPrefabToRaycast();
 
                 //if user is clicking to place the object, and it is in valid position
                 if (Input.GetMouseButtonDown(0) && isGhostInValidPosition)
@@ -125,11 +123,11 @@ public class DefendManager : MonoBehaviour
             //if ghost is null - we need to instantiate it to the current selected model
             ghostBuildGameObject = Instantiate(currentBuild);
             ModelParent = ghostBuildGameObject.transform.GetChild(0);
-            ghostifyModel(ghostBuildGameObject.transform);  
+            GhostifyModel(ghostBuildGameObject.transform);  
         }
     }
 
-    private void ghostifyModel(Transform modelParent, Material ghostMaterial = null)
+    private void GhostifyModel(Transform modelParent, Material ghostMaterial = null)
     /*
     note for later: it would be much better to make a prefab and instantiate that - as opposed to doing these ops on current pillar prefabs...
     */
@@ -226,7 +224,7 @@ public class DefendManager : MonoBehaviour
         return totalBounds;
     }
 
-    private void moveGhostPrefabToRaycast()
+    private void MoveGhostPrefabToRaycast()
     {
         if (ghostBuildGameObject == null || ModelParent == null)
             return;
@@ -241,7 +239,7 @@ public class DefendManager : MonoBehaviour
         if (!Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, buildingSphereMask))
         {
             isGhostInValidPosition = false;
-            ghostifyModel(ModelParent, ghostMaterialInvalid);
+            GhostifyModel(ModelParent, ghostMaterialInvalid);
             return;
         }
 
@@ -271,7 +269,7 @@ public class DefendManager : MonoBehaviour
         //here is where it becomes complicated - we will try to move this object to a connector we may be looking at 
         TrySnapToConnector(currentBuildType, hit);
         //if the ghost is in a valid position now, set the color properly
-        ghostifyModel(ModelParent, isGhostInValidPosition ? ghostMaterialValid : ghostMaterialInvalid);
+        GhostifyModel(ModelParent, isGhostInValidPosition ? ghostMaterialValid : ghostMaterialInvalid);
     }
 
     private void SnapGhostToConnector(Connector ghost, Connector target, bool horizontalToVertical, bool verticalToHorizontal)
@@ -307,7 +305,7 @@ public class DefendManager : MonoBehaviour
             //set this true since we must be in a valid point if we've snapped 
             //and make sure we're still displaying as a ghost
             isGhostInValidPosition = true;
-            ghostifyModel(ModelParent, ghostMaterialValid);
+            GhostifyModel(ModelParent, ghostMaterialValid);
 
             return;
         }
@@ -367,7 +365,7 @@ public class DefendManager : MonoBehaviour
         //set this true since we must be in a valid point if we've snapped 
         //and make sure we're still displaying as a ghost
         isGhostInValidPosition = true;
-        ghostifyModel(ModelParent, ghostMaterialValid);
+        GhostifyModel(ModelParent, ghostMaterialValid);
 
         return;
     }
@@ -426,7 +424,7 @@ public class DefendManager : MonoBehaviour
             {
                 SnapGhostToConnector(ghostConnector, targetConnector, false, true);
 
-                ghostifyModel(ModelParent, ghostMaterialValid);
+                GhostifyModel(ModelParent, ghostMaterialValid);
                 isGhostInValidPosition = true;
                 return;
             }
@@ -468,7 +466,7 @@ public class DefendManager : MonoBehaviour
             {
                 SnapGhostToConnector(ghostConnector, targetConnector, false, false);
 
-                ghostifyModel(ModelParent, ghostMaterialValid);
+                GhostifyModel(ModelParent, ghostMaterialValid);
                 isGhostInValidPosition = true;
                 return;
             }
@@ -531,7 +529,7 @@ public class DefendManager : MonoBehaviour
         {
             SnapGhostToConnector(ghostConnector, targetConnector, true, false);
 
-            ghostifyModel(ModelParent, ghostMaterialValid);
+            GhostifyModel(ModelParent, ghostMaterialValid);
             isGhostInValidPosition = true;
             return;
         }

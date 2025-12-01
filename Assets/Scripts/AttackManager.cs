@@ -12,9 +12,9 @@ public class AttackManager : MonoBehaviour
     [HideInInspector] public Queue<GameObject> spawnedBalls = new Queue<GameObject>();
 
     [Header("Bullet Attributes and Misc. Settings")]
-    [SerializeField] public int MaxBalls = 10;
+    [SerializeField] public int MaxBalls;
     [SerializeField] private float launchForce = 10000f; 
-    [HideInInspector] private int currentAmmo = 10;
+    [HideInInspector] private int currentAmmo;
     [HideInInspector] float ammoExhaustedTimer = 15f;
 
     [Header("UI Elements and Scripts")]
@@ -24,11 +24,11 @@ public class AttackManager : MonoBehaviour
     [SerializeField] private Camera MainCamera;
     [HideInInspector] string currentName = "Fastball";
 
-    private bool isEnabled = true;
-    public bool isEnabledAccess
+    private bool IsEnabled = true;
+    public bool IsEnabledAccess
     {
-        get => isEnabled;
-        set => isEnabled = value;
+        get => IsEnabled;
+        set => IsEnabled = value;
     }
     public enum SelectedBulletType
     {
@@ -48,7 +48,7 @@ public class AttackManager : MonoBehaviour
     void Update()
     {
         //if we're not allowed to be here - kick out 
-        if (!isEnabled) return;
+        if (!IsEnabled) return;
 
         //otherwise - if we're out of bullets we need to decrement out cooldown
         else if(currentAmmo == 0)
@@ -62,6 +62,8 @@ public class AttackManager : MonoBehaviour
             //we need to switch round now 
             if (ammoExhaustedTimer <= 0)
             {
+                ammoExhaustedTimer = 15f;
+
                 //Debug.Log("Switching to defender - player out of bullets");
                 RoundManager.defenderScore += 1;
                 RoundManager.SwitchPhase(RoundManager.Phase.Defender);

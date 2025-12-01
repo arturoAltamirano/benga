@@ -168,6 +168,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &95463759
 Rigidbody:
@@ -465,6 +466,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &245004761
 Rigidbody:
@@ -645,7 +647,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7789880529614944785, guid: ac39edca6f665ef80995dbec4e833bb3, type: 3}
       propertyPath: m_Mass
-      value: 30
+      value: 15
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -718,7 +720,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7789880529614944785, guid: ac39edca6f665ef80995dbec4e833bb3, type: 3}
       propertyPath: m_Mass
-      value: 10
+      value: 5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -774,6 +776,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &292650621
 Rigidbody:
@@ -1031,6 +1034,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &324961380
 Rigidbody:
@@ -1319,6 +1323,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &337209237
 Rigidbody:
@@ -1624,6 +1629,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &369426213
 Rigidbody:
@@ -1775,6 +1781,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &420899700
 Rigidbody:
@@ -1987,6 +1994,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &458871687
 Rigidbody:
@@ -2138,6 +2146,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &489731533
 Rigidbody:
@@ -2289,6 +2298,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &527338729
 Rigidbody:
@@ -2440,6 +2450,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &589654339
 Rigidbody:
@@ -2728,6 +2739,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &613358767
 Rigidbody:
@@ -2879,6 +2891,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &617516284
 Rigidbody:
@@ -3129,6 +3142,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &837401764
 Rigidbody:
@@ -3401,6 +3415,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &864349036
 Rigidbody:
@@ -3552,6 +3567,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &953939334
 Rigidbody:
@@ -3703,6 +3719,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &956378581
 Rigidbody:
@@ -3854,7 +3871,7 @@ MonoBehaviour:
   Slug: {fileID: 1518941979}
   currentBulletType: 0
   MaxBalls: 20
-  launchForce: 50000
+  launchForce: 20000
   RoundManager: {fileID: 1956519995}
   counterText: {fileID: 601197443}
   selectedObjectText: {fileID: 136565971}
@@ -3908,6 +3925,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &1101345869
 Rigidbody:
@@ -4059,6 +4077,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &1118302962
 Rigidbody:
@@ -4420,6 +4439,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &1231471519
 Rigidbody:
@@ -4571,6 +4591,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &1279211919
 Rigidbody:
@@ -4722,6 +4743,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &1362811162
 Rigidbody:
@@ -4873,6 +4895,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &1365287330
 Rigidbody:
@@ -5121,6 +5144,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &1451053389
 Rigidbody:
@@ -5301,7 +5325,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7789880529614944785, guid: ac39edca6f665ef80995dbec4e833bb3, type: 3}
       propertyPath: m_Mass
-      value: 5
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -5402,6 +5426,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &1527406197
 Rigidbody:
@@ -5553,6 +5578,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &1533772589
 Rigidbody:
@@ -5704,6 +5730,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &1536420071
 Rigidbody:
@@ -6006,6 +6033,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &1713539565
 Rigidbody:
@@ -6333,6 +6361,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &1757430828
 Rigidbody:
@@ -6484,6 +6513,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &1769528643
 Rigidbody:
@@ -6774,6 +6804,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &1891053054
 Rigidbody:
@@ -6965,6 +6996,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &1928646776
 Rigidbody:
@@ -7170,6 +7202,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &2006245688
 Rigidbody:
@@ -7321,6 +7354,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &2013183463
 Rigidbody:
@@ -7472,6 +7506,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &2029555379
 Rigidbody:
@@ -7623,6 +7658,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connectorPosition: 2
+  IsOccupied: 0
   connectorType: 0
 --- !u!54 &2042630642
 Rigidbody:
@@ -7950,7 +7986,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2499198597122066199, guid: 14226c75396ca29fda006a02690dadef, type: 3}
       propertyPath: m_Mass
-      value: 15
+      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 2499198597122066199, guid: 14226c75396ca29fda006a02690dadef, type: 3}
       propertyPath: m_CollisionDetection

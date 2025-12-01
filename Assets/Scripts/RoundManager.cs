@@ -54,8 +54,8 @@ public class RoundManager : MonoBehaviour
             scoreboardTimer = defenderPhaseDuration;
 
             //set the enabled access params to be checked during update
-            AttackManager.isEnabledAccess = false;
-            DefendManager.isEnabledAccess = true;
+            AttackManager.IsEnabledAccess = false;
+            DefendManager.IsEnabledAccess = true;
 
             //wipe out all of the wrecking balls at the end of the attacker cycle
             foreach (var ball in AttackManager.spawnedBalls)
@@ -85,8 +85,8 @@ public class RoundManager : MonoBehaviour
             scoreboardTimer = attackerPhaseDuration;
 
             //set the enabled access params to be checked during update
-            AttackManager.isEnabledAccess = true;
-            DefendManager.isEnabledAccess = false;
+            AttackManager.IsEnabledAccess = true;
+            DefendManager.IsEnabledAccess = false;
 
             //we want to reset the ammo count in wreckingBall so we can shoot again
             AttackManager.ResetAmmo();
